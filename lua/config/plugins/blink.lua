@@ -7,7 +7,7 @@ return {
 			-- follow latest release.
 			version = "v2.*", -- Replace <CurrentMajor> by the latest released major (first number of latest release)
 		},
-		"onsails/lspkind.nvim", -- vs-code like pictograms
+		-- "onsails/lspkind.nvim", -- vs-code like pictograms
 	},
 	-- use a release tag to download pre-built binaries
 	version = "*",
@@ -28,7 +28,7 @@ return {
 			["<c-x>"] = { "show", "show_documentation", "hide_documentation" },
 			["<c-e>"] = { "cancel", "fallback" },
 			["<tab>"] = { "snippet_forward", "accept", "fallback" },
-			["<c-y>"] = { "select_and_accept", "fallback" },
+			["<c-l>"] = { "select_and_accept", "fallback" },
 			["<c-k>"] = { "select_prev", "fallback" },
 			["<up>"] = { "select_prev", "fallback" },
 			["<c-j>"] = { "select_next", "fallback" },

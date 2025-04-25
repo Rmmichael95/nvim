@@ -14,7 +14,7 @@ return {
 			"clangd",
 			"css-lsp",
 			"html-lsp",
-			"phpactor",
+			--"phpactor",
 			"svelte-language-server",
 			"bash-language-server",
 			"intelephense",

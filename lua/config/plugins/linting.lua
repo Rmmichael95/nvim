@@ -17,8 +17,9 @@ return {
 	config = function()
 		local lint = require("lint")
 		local phpcs = lint.linters.phpcs
+		--phpcs.cmd = "phpcs"
 		-- phpcs.cmd = vim.fn.stdpath("data") .. "/mason/bin/phpcs"
-		phpcs.cmd = "phpcs"
+		phpcs.cmd = "/home/ryanm/.config/composer/vendor/bin/phpcs"
 		--phpcs.stdin = false
 		phpcs.args = {
 			"-q",
@@ -40,7 +41,7 @@ return {
 			javascriptreact = { "eslint_d" },
 			typescriptreact = { "eslint_d" },
 			svelte = { "eslint_d" },
-			php = { "php", "phpcs" },
+			php = { "phpcs" },
 			python = { "pylint" },
 			["*"] = { "codespell" },
 		}

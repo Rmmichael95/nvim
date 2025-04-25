@@ -99,6 +99,9 @@ o.iskeyword:append("-") -- hiphenated oneword
 o.spelllang = { "en" }
 o.spelloptions:append("noplainbuffer")
 
+-- diff
+o.diffopt = "filler,internal,closeoff,algorithm:histogram,context:5,linematch:60"
+
 -- set colorscheme
 o.termguicolors = true -- enable 24bit colors in TUI, uses guibg/guifg
 o.background = "dark" -- set background dark/light
@@ -135,6 +138,10 @@ o.foldlevel = 99
 --o.formatexpr = "v:lua.require'lazyvim.util'.format.formatexpr()"
 o.formatoptions = "jcroqlnt" -- tcqj
 o.grepformat = "%f:%l:%c:%m"
+
+--no special symbol input for all files
+-- o.iminsert = 0
+-- o.imsearch = 0
 
 -- backups
 o.backupskip = "/tmp/*,/private/tmp/*,*.gpg" -- don't backup filename with these patterns

@@ -35,7 +35,7 @@ vim.filetype.add({
 		png = "image",
 		jpg = "image",
 		jpeg = "image",
-		js = "js",
+		js = "javascript",
 		lua = "lua",
 		md = "markdown",
 		mmark = "markdown",

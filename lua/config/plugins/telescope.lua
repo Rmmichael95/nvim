@@ -7,8 +7,8 @@ return {
 		"nvim-lua/plenary.nvim",
 		{
 			"nvim-telescope/telescope-fzf-native.nvim",
-			--build = "make",
-			build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
+			build = "make",
+			-- build = "cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && cmake --build build --config Release && cmake --install build --prefix build",
 		},
 		"nvim-telescope/telescope-file-browser.nvim",
 	},
@@ -247,6 +247,14 @@ return {
 					hidden = true,
 				},
 			},
+			extenshions = {
+				fzf = {
+					fuzzy = true,
+					override_generic_sorter = true,
+					case_mode = "smart_case",
+				},
+			},
 		}
 	end,
+	-- require("telescope").load_extension("fzf"),
 }
