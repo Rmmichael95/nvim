@@ -23,10 +23,10 @@ return {
 		require("conform").setup({
 			formatters = {
 				phpcbf = {
-					-- command = "phpcbf",
+					command = "phpcbf",
 					-- command = vim.fn.stdpath("data") .. "/mason/bin/phpcbf",
 					-- command = vim.fn.getcwd() .. "/vendor/bin/phpcbf",
-					command = "/home/ryanm/.config/composer/vendor/bin/phpcbf",
+					-- command = "/home/ryanm/.config/composer/vendor/bin/phpcbf",
 					args = { "-q", "--standard=WordPress", "--report-json", "$FILENAME" },
 				},
 			},

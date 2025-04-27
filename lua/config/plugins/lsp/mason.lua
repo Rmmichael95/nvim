@@ -14,7 +14,6 @@ return {
 			"clangd",
 			"css-lsp",
 			"html-lsp",
-			--"phpactor",
 			"svelte-language-server",
 			"bash-language-server",
 			"intelephense",
@@ -34,7 +33,8 @@ return {
 			-- conform
 			"clang-format",
 			"prettier", -- prettier formatter
-			-- "phpcbf", -- php formatting w/code sniffer
+			"phpcbf", -- php formatting w/code sniffer
+			"phpactor",
 			"stylua", -- lua formatter
 			"isort", -- python formatter
 			"black", -- python formatter
