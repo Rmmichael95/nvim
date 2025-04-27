@@ -17,7 +17,8 @@ return {
 	config = function()
 		local lint = require("lint")
 		local phpcs = lint.linters.phpcs
-		phpcs.cmd = "phpcs"
+		--phpcs.cmd = "phpcs"
+		phpcs.cmd = vim.fn.getcwd() .. "/vendor/bin/phpcs"
 		-- phpcs.cmd = vim.fn.stdpath("data") .. "/mason/bin/phpcs"
 		-- phpcs.cmd = "/home/ryanm/.config/composer/vendor/bin/phpcs"
 		--phpcs.stdin = false
