@@ -1,10 +1,11 @@
 return {
 	"neovim/nvim-lspconfig",
+	version = "1.32.0",
 	event = { "BufReadPre", "BufNewFile" },
 	dependencies = {
 		"saghen/blink.cmp",
 		"williamboman/mason.nvim",
-		"williamboman/mason-lspconfig.nvim",
+		{ "williamboman/mason-lspconfig.nvim", version = "1.32.0" },
 		"folke/lazydev.nvim",
 		{ "antosha417/nvim-lsp-file-operations", config = true },
 	},
