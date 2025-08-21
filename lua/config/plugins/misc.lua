@@ -16,9 +16,9 @@ return {
 			"SudoEdit",
 		},
 	},
-	-- {
-	-- 	"christoomey/vim-tmux-navigator", -- tmux & split window navigation
-	-- },
+	{
+		"christoomey/vim-tmux-navigator", -- tmux & split window navigation
+	},
 	{
 		"neomutt/neomutt.vim", -- syntax for mail
 		ft = "mutt",

@@ -5,7 +5,6 @@ return {
 	dependencies = {
 		"saghen/blink.cmp",
 		"williamboman/mason.nvim",
-		{ "williamboman/mason-lspconfig.nvim", version = "1.32.0" },
 		"folke/lazydev.nvim",
 		{ "antosha417/nvim-lsp-file-operations", config = true },
 	},
@@ -64,284 +63,297 @@ return {
 
 		vim.diagnostic.config(vim.deepcopy(opts.diagnostics))
 
-		local lspconfig = require("lspconfig")
-		local mason_lspconfig = require("mason-lspconfig")
 		local capabilities = vim.lsp.protocol.make_client_capabilities()
 		capabilities.textDocument.completion.completionItem.snippetSupport = true
 		capabilities = require("blink.cmp").get_lsp_capabilities(capabilities)
 
-		mason_lspconfig.setup_handlers({
-			-- default handler for installed servers
-			function(server_name)
-				lspconfig[server_name].setup({
-					capabilities = capabilities,
-				})
-			end,
-			["svelte"] = function()
-				-- configure svelte server
-				lspconfig["svelte"].setup({
-					capabilities = capabilities,
-					on_attach = function(client)
-						vim.api.nvim_create_autocmd("BufWritePost", {
-							pattern = { "*.js", "*.ts" },
-							callback = function(ctx)
-								-- Here use ctx.match instead of ctx.file
-								client.notify("$/onDidChangeTsOrJsFile", { uri = ctx.match })
-							end,
-						})
-					end,
-				})
-			end,
-			["graphql"] = function()
-				-- configure graphql language server
-				lspconfig["graphql"].setup({
-					capabilities = capabilities,
-					filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
-				})
-			end,
-			["html"] = function()
-				lspconfig["html"].setup({
-					capabilities = capabilities,
-					filetypes = { "html", "templ", "php" },
-				})
-			end,
-			["emmet_ls"] = function()
-				-- configure emmet language server
-				lspconfig["emmet_ls"].setup({
-					capabilities = capabilities,
-					filetypes = {
-						"html",
-						"typescriptreact",
-						"javascriptreact",
-						"css",
-						"sass",
-						"scss",
-						"less",
-						"svelte",
-					},
-					init_options = {
-						html = {
-							options = {
-								-- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
-								["bem.enabled"] = true,
-							},
-						},
-					},
-				})
-			end,
-			["lua_ls"] = function()
-				-- configure lua server (with special settings)
-				lspconfig["lua_ls"].setup({
-					capabilities = capabilities,
-					settings = {
-						Lua = {
-							-- make the language server recognize "vim" global
-							diagnostics = {
-								globals = { "vim" },
-							},
-							completion = {
-								callSnippet = "Replace",
-							},
-						},
-					},
-				})
-			end,
-			["intelephense"] = function()
-				lspconfig["intelephense"].setup({
-					capabilities = capabilities,
-					settings = {
-						intelephense = {
-							stubs = {
-								"amqp",
-								"apache",
-								"apcu",
-								"bcmath",
-								"blackfire",
-								"bz2",
-								"calendar",
-								"cassandra",
-								"com_dotnet",
-								"Core",
-								"couchbase",
-								"crypto",
-								"ctype",
-								"cubrid",
-								"curl",
-								"date",
-								"dba",
-								"decimal",
-								"dom",
-								"ds",
-								"enchant",
-								"Ev",
-								"event",
-								"exif",
-								"fann",
-								"FFI",
-								"ffmpeg",
-								"fileinfo",
-								"filter",
-								"fpm",
-								"ftp",
-								"gd",
-								"gearman",
-								"geoip",
-								"geos",
-								"gettext",
-								"gmagick",
-								"gmp",
-								"gnupg",
-								"grpc",
-								"hash",
-								"http",
-								"ibm_db2",
-								"iconv",
-								"igbinary",
-								"imagick",
-								"imap",
-								"inotify",
-								"interbase",
-								"intl",
-								"json",
-								"judy",
-								"ldap",
-								"leveldb",
-								"libevent",
-								"libsodium",
-								"libxml",
-								"lua",
-								"lzf",
-								"mailparse",
-								"mapscript",
-								"mbstring",
-								"mcrypt",
-								"memcache",
-								"memcached",
-								"meminfo",
-								"meta",
-								"ming",
-								"mongo",
-								"mongodb",
-								"mosquitto-php",
-								"mqseries",
-								"msgpack",
-								"mssql",
-								"mysql",
-								"mysql_xdevapi",
-								"mysqli",
-								"ncurses",
-								"newrelic",
-								"oauth",
-								"oci8",
-								"odbc",
-								"openssl",
-								"parallel",
-								"Parle",
-								"pcntl",
-								"pcov",
-								"pcre",
-								"pdflib",
-								"PDO",
-								"pdo_ibm",
-								"pdo_mysql",
-								"pdo_pgsql",
-								"pdo_sqlite",
-								"pgsql",
-								"Phar",
-								"phpdbg",
-								"posix",
-								"pspell",
-								"pthreads",
-								"radius",
-								"rar",
-								"rdkafka",
-								"readline",
-								"recode",
-								"redis",
-								"Reflection",
-								"regex",
-								"rpminfo",
-								"rrd",
-								"SaxonC",
-								"session",
-								"shmop",
-								"SimpleXML",
-								"snmp",
-								"soap",
-								"sockets",
-								"sodium",
-								"solr",
-								"SPL",
-								"SplType",
-								"SQLite",
-								"sqlite3",
-								"sqlsrv",
-								"ssh2",
-								"standard",
-								"stats",
-								"stomp",
-								"suhosin",
-								"superglobals",
-								"svn",
-								"sybase",
-								"sync",
-								"sysvmsg",
-								"sysvsem",
-								"sysvshm",
-								"tidy",
-								"tokenizer",
-								"uopz",
-								"uv",
-								"v8js",
-								"wddx",
-								"win32service",
-								"winbinder",
-								"wincache",
-								"xcache",
-								"xdebug",
-								"xhprof",
-								"xml",
-								"xmlreader",
-								"xmlrpc",
-								"xmlwriter",
-								"xsl",
-								"xxtea",
-								"yaf",
-								"yaml",
-								"yar",
-								"zend",
-								"Zend OPcache",
-								"ZendCache",
-								"ZendDebugger",
-								"ZendUtils",
-								"zip",
-								"zlib",
-								"zmq",
-								"zookeeper",
-								"wordpress",
-								"woocommerce",
-								"acf-pro",
-								"wordpress-globals",
-								"wp-cli",
-								"genesis",
-								"polylang",
-							},
-							environment = {
-								includePaths = {
-									"/home/ryanm/.config/composer/vendor/php-stubs/",
-									"/home/ryanm/.config/composer/vendor/wpsyntex/",
-								}, -- this line forces the composer path for the stubs in case inteliphense can't find it...
-								-- root_dir = vim.loop.cwd,
-							},
-							files = {
-								maxSize = 5000000,
-							},
-						},
-					},
-				})
-			end,
+		-- configure svelte server
+		vim.lsp.enable("bashls", {
+			capabilities = capabilities,
 		})
-
+		vim.lsp.enable("clangd", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("cssls", {
+			capabilities = capabilities,
+		})
+		-- configure emmet language server
+		vim.lsp.enable("emmet_ls", {
+			capabilities = capabilities,
+			filetypes = {
+				"html",
+				"typescriptreact",
+				"javascriptreact",
+				"css",
+				"sass",
+				"scss",
+				"less",
+				"svelte",
+			},
+			init_options = {
+				html = {
+					options = {
+						-- For possible options, see: https://github.com/emmetio/emmet/blob/master/src/config.ts#L79-L267
+						["bem.enabled"] = true,
+					},
+				},
+			},
+		})
+		vim.lsp.enable("grammarly", {
+			capabilities = capabilities,
+		})
+		-- configure graphql language server
+		vim.lsp.enable("graphql", {
+			capabilities = capabilities,
+			filetypes = { "graphql", "gql", "svelte", "typescriptreact", "javascriptreact" },
+		})
+		vim.lsp.enable("html", {
+			capabilities = capabilities,
+			filetypes = { "html", "templ", "php" },
+		})
+		vim.lsp.enable("jsonls", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("ltex", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("phpactor", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("pyright", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("r_language_server", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("rust_analyzer", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("svelte", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("texlab", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("ts_ls", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("vimls", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("yamlls", {
+			capabilities = capabilities,
+		})
+		vim.lsp.enable("zls", {
+			capabilities = capabilities,
+		})
+		-- configure lua server (with special settings)
+		vim.lsp.enable("lua_ls", {
+			capabilities = capabilities,
+			settings = {
+				Lua = {
+					-- make the language server recognize "vim" global
+					diagnostics = {
+						globals = { "vim" },
+					},
+					completion = {
+						callSnippet = "Replace",
+					},
+				},
+			},
+		})
+		-- vim.lsp.enable("intelephense", {
+		-- 	capabilities = capabilities,
+		-- 	settings = {
+		-- 		intelephense = {
+		-- 			stubs = {
+		-- 				"amqp",
+		-- 				"apache",
+		-- 				"apcu",
+		-- 				"bcmath",
+		-- 				"blackfire",
+		-- 				"bz2",
+		-- 				"calendar",
+		-- 				"cassandra",
+		-- 				"com_dotnet",
+		-- 				"Core",
+		-- 				"couchbase",
+		-- 				"crypto",
+		-- 				"ctype",
+		-- 				"cubrid",
+		-- 				"curl",
+		-- 				"date",
+		-- 				"dba",
+		-- 				"decimal",
+		-- 				"dom",
+		-- 				"ds",
+		-- 				"enchant",
+		-- 				"Ev",
+		-- 				"event",
+		-- 				"exif",
+		-- 				"fann",
+		-- 				"FFI",
+		-- 				"ffmpeg",
+		-- 				"fileinfo",
+		-- 				"filter",
+		-- 				"fpm",
+		-- 				"ftp",
+		-- 				"gd",
+		-- 				"gearman",
+		-- 				"geoip",
+		-- 				"geos",
+		-- 				"gettext",
+		-- 				"gmagick",
+		-- 				"gmp",
+		-- 				"gnupg",
+		-- 				"grpc",
+		-- 				"hash",
+		-- 				"http",
+		-- 				"ibm_db2",
+		-- 				"iconv",
+		-- 				"igbinary",
+		-- 				"imagick",
+		-- 				"imap",
+		-- 				"inotify",
+		-- 				"interbase",
+		-- 				"intl",
+		-- 				"json",
+		-- 				"judy",
+		-- 				"ldap",
+		-- 				"leveldb",
+		-- 				"libevent",
+		-- 				"libsodium",
+		-- 				"libxml",
+		-- 				"lua",
+		-- 				"lzf",
+		-- 				"mailparse",
+		-- 				"mapscript",
+		-- 				"mbstring",
+		-- 				"mcrypt",
+		-- 				"memcache",
+		-- 				"memcached",
+		-- 				"meminfo",
+		-- 				"meta",
+		-- 				"ming",
+		-- 				"mongo",
+		-- 				"mongodb",
+		-- 				"mosquitto-php",
+		-- 				"mqseries",
+		-- 				"msgpack",
+		-- 				"mssql",
+		-- 				"mysql",
+		-- 				"mysql_xdevapi",
+		-- 				"mysqli",
+		-- 				"ncurses",
+		-- 				"newrelic",
+		-- 				"oauth",
+		-- 				"oci8",
+		-- 				"odbc",
+		-- 				"openssl",
+		-- 				"parallel",
+		-- 				"Parle",
+		-- 				"pcntl",
+		-- 				"pcov",
+		-- 				"pcre",
+		-- 				"pdflib",
+		-- 				"PDO",
+		-- 				"pdo_ibm",
+		-- 				"pdo_mysql",
+		-- 				"pdo_pgsql",
+		-- 				"pdo_sqlite",
+		-- 				"pgsql",
+		-- 				"Phar",
+		-- 				"phpdbg",
+		-- 				"posix",
+		-- 				"pspell",
+		-- 				"pthreads",
+		-- 				"radius",
+		-- 				"rar",
+		-- 				"rdkafka",
+		-- 				"readline",
+		-- 				"recode",
+		-- 				"redis",
+		-- 				"Reflection",
+		-- 				"regex",
+		-- 				"rpminfo",
+		-- 				"rrd",
+		-- 				"SaxonC",
+		-- 				"session",
+		-- 				"shmop",
+		-- 				"SimpleXML",
+		-- 				"snmp",
+		-- 				"soap",
+		-- 				"sockets",
+		-- 				"sodium",
+		-- 				"solr",
+		-- 				"SPL",
+		-- 				"SplType",
+		-- 				"SQLite",
+		-- 				"sqlite3",
+		-- 				"sqlsrv",
+		-- 				"ssh2",
+		-- 				"standard",
+		-- 				"stats",
+		-- 				"stomp",
+		-- 				"suhosin",
+		-- 				"superglobals",
+		-- 				"svn",
+		-- 				"sybase",
+		-- 				"sync",
+		-- 				"sysvmsg",
+		-- 				"sysvsem",
+		-- 				"sysvshm",
+		-- 				"tidy",
+		-- 				"tokenizer",
+		-- 				"uopz",
+		-- 				"uv",
+		-- 				"v8js",
+		-- 				"wddx",
+		-- 				"win32service",
+		-- 				"winbinder",
+		-- 				"wincache",
+		-- 				"xcache",
+		-- 				"xdebug",
+		-- 				"xhprof",
+		-- 				"xml",
+		-- 				"xmlreader",
+		-- 				"xmlrpc",
+		-- 				"xmlwriter",
+		-- 				"xsl",
+		-- 				"xxtea",
+		-- 				"yaf",
+		-- 				"yaml",
+		-- 				"yar",
+		-- 				"zend",
+		-- 				"Zend OPcache",
+		-- 				"ZendCache",
+		-- 				"ZendDebugger",
+		-- 				"ZendUtils",
+		-- 				"zip",
+		-- 				"zlib",
+		-- 				"zmq",
+		-- 				"zookeeper",
+		-- 				"wordpress",
+		-- 				"woocommerce",
+		-- 				"acf-pro",
+		-- 				"wordpress-globals",
+		-- 				"wp-cli",
+		-- 				"genesis",
+		-- 				"polylang",
+		-- 			},
+		-- 			environment = {
+		-- 				includePaths = {
+		-- 					"/home/ryanm/.config/composer/vendor/php-stubs/",
+		-- 					"/home/ryanm/.config/composer/vendor/wpsyntex/",
+		-- 				}, -- this line forces the composer path for the stubs in case inteliphense can't find it...
+		-- 				root_dir = vim.loop.cwd,
+		-- 			},
+		-- 			files = {
+		-- 				maxSize = 5000000,
+		-- 			},
+		-- 		},
+		-- 	},
+		-- })
 		local keymap = vim.keymap -- for conciseness
 
 		vim.api.nvim_create_autocmd("LspAttach", {
@@ -383,12 +395,6 @@ return {
 
 				opts.desc = "Show line diagnostics"
 				keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- show diagnostics for line
-
-				opts.desc = "Go to previous diagnostic"
-				keymap.set("n", "[d", vim.diagnostic.goto_prev, opts) -- jump to previous diagnostic in buffer
-
-				opts.desc = "Go to next diagnostic"
-				keymap.set("n", "]d", vim.diagnostic.goto_next, opts) -- jump to next diagnostic in buffer
 
 				opts.desc = "Show documentation for what is under cursor"
 				keymap.set("n", "K", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor

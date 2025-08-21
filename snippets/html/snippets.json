@@ -1,7 +1,0 @@
-{
-  "Div w/class": {
-    "prefix": "divc",
-    "body": ["<div class=\"$${1:class}\">", "\t${0:# code...}", "</div>"],
-    "description": "Div with class"
-  }
-}
