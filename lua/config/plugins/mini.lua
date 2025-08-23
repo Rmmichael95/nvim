@@ -94,6 +94,10 @@ return {
 				return package.loaded["nvim-web-devicons"]
 			end
 		end,
+		config = function(_, opts)
+			-- Apply the tweak to LSP kind names to include icons
+			require("mini.icons").tweak_lsp_kind("replace") -- "prepend" or "append" or "replace"
+		end,
 	},
 	{
 		"echasnovski/mini.pairs",

@@ -7,7 +7,7 @@ local f = ls.function_node
 return {
 	ls.add_snippets("markdown", {
 		s({ trig = "_skel", name = "_skel" }, {
-			ls.text_node({
+			t({
 				"---",
 				"title: " .. vim.fn.expand("%:t:r"),
 				"Author: Ryan M Sullivan",

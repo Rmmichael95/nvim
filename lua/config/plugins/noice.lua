@@ -31,7 +31,8 @@ return {
 			},
 		},
 		notify = {
-			enabled = false,
+			enabled = true,
+			view = "notify",
 		},
 		presets = {
 			bottom_search = true,

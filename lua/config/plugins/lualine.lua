@@ -1,6 +1,8 @@
 return {
 	"nvim-lualine/lualine.nvim",
-	dependencies = { "nvim-tree/nvim-web-devicons" },
+	dependencies = {
+		-- "nvim-tree/nvim-web-devicons"
+	},
 	config = function()
 		local lualine = require("lualine")
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
@@ -12,17 +14,17 @@ return {
     -- Color table for highlights
     -- stylua: ignore
     local colors = {
-      bg       = '#202328',
-      fg       = '#d3c6aa',
-      yellow   = '#dbbc7f',
-      cyan     = '#83c092',
-      darkblue = '#081633',
+      bg       = '#1e2326',
+      fg       = '#f4dbd6',
+      yellow   = '#eed49f',
+      cyan     = '#8bd5ca',
+      darkblue = '#7fbbb3',
       green    = '#a7c080',
-      orange   = '#FF8800',
-      violet   = '#a9a1e1',
-      magenta  = '#d699b6',
-      blue     = '#7fbbb3',
-      red      = '#e67e80',
+      orange   = '#e69875',
+      violet   = '#d699b6',
+      magenta  = '#f5bde6',
+      blue     = '#8bd5ca',
+      red      = '#ed8796',
     }
 
 		local conditions = {

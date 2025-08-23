@@ -11,6 +11,9 @@ g.do_filetype_lua = 1
 -- set system python3
 g.python3_host_prog = "/usr/bin/python3"
 
+-- set system perl
+g.perl_host_prog = "/usr/bin/perl"
+
 -- Fix markdown indentation settings
 g.markdown_recommended_style = 0
 
@@ -23,6 +26,7 @@ g.loaded_netrwPlugin = 1
 
 g.autoformat = true
 g.deprecation_warnings = false -- Hide deprecation warnings
+vim.deprecate = function() end -- Hide deprecation warnings
 
 -- Set filetype to `bigfile` for files larger than 1.5 MB
 -- Only vim syntax will be enabled (with the correct filetype)
@@ -58,13 +62,14 @@ o.splitkeep = "screen"
 o.inccommand = "nosplit" -- show affects of commands incrimentally
 o.visualbell = true -- show visual bell instead of beeping
 o.virtualedit = "block" -- allow virual editing in visual block
-o.laststatus = 3 -- only one statusline
+o.laststatus = 3 -- only one statuslinedmenu < /dev/null
 o.winhl = "LineNr:white" -- make line number of inctive window white
 -- window options
 o.spell = false -- don't check spelling
 o.wrap = false -- don't wrap text lines
 o.foldenable = false -- start with fold open
-o.foldmethod = "marker" -- method to fold text; on mark
+o.foldmethod = "expr" -- method to fold text; on expression
+o.foldexpr = "nvim_treesitter#foldexpr()" -- use treesitter to recognize told expression
 o.number = true -- show line number on left
 -- buffer options
 o.autoindent = true -- maintain indent of current line

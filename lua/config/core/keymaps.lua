@@ -21,10 +21,8 @@ for item in items
 endfor
 ]])
 
-map.set("c", "w!!", "w !doas tee > /dev/null %", { noremap = false, desc = "Save as SUDO" })
-
 -- Clear search with <esc>
---map({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and Clear hlsearch" })
+-- map({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and Clear hlsearch" })
 
 -- Clear search, diff update and redraw
 -- taken from runtime/lua/_editor.lua
@@ -52,6 +50,8 @@ map.set("n", "L", "g") -- keep search in center screen
 map.set("n", "g;", "g;zz") -- keep search in center screen
 map.set("n", "g,", "g,zz") -- keep search in center screen
 map.set("n", "<c-o>", "<c-o>zz") -- keep search in center screen
+map.set("n", "<C-d>", "<C-d>zz") -- center page up
+map.set("n", "<C-u>", "<C-u>zz") -- center page down
 
 -- https://github.com/mhinz/vim-galore#saner-behavior-of-n-and-n
 map.set("n", "n", "'Nn'[v:searchforward].'zv'", { expr = true, desc = "Next Search Result" })
@@ -80,6 +80,11 @@ map.set("n", "<C-t><C-z>", "<Cmd>tabclose<CR>") -- easy close tab
 map.set("n", "<C-t><C-n>", "<Cmd>tabn<CR>") -- easy next tab
 map.set("n", "<C-t><C-p>", "<Cmd>tabp<CR>") -- easy prev tab
 
+vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
+vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
+vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
+vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
+
 -- Resize window using <ctrl> arrow keys
 map.set("n", "<C-Up>", "<Cmd>resize +2<CR>", { desc = "Increase Window Height" })
 map.set("n", "<C-Down>", "<Cmd>resize -2<CR>", { desc = "Decrease Window Height" })
@@ -103,6 +108,7 @@ map.set("i", "<A-k>", "<esc><Cmd>m .-2<cr>==gi", { desc = "Move Up" })
 map.set("v", "<A-j>", "<Cmd><C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
 map.set("v", "<A-k>", "<Cmd><C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
 
+map.set("c", ",S", "w !sudo tee > /dev/null %", { noremap = false, desc = "Save as SUDO" })
 map.set("n", ",q", "<Cmd>q!<CR>") -- easy quit
 map.set("n", ",w", "<Cmd>w!<CR>") -- easy write
 map.set("n", ",W", "<Cmd>w!!<CR>") -- force quit
@@ -127,12 +133,12 @@ map.set("n", "gI", "``.") -- gi moves to "last place you exited insert mode", ma
 map.set("n", "<leader>c", '<Cmd>w! | !compiler "%:p"<CR>')
 
 -- better up/down
--- map.set({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })
--- map.set({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })
--- map.set({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
--- map.set({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
+map.set({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })
+map.set({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })
+map.set({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
+map.set({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
 
---map.set('n', ',T', ':let _s=@/<Bar>:%s/\\s\\+$//e<Bar>%s/ \\+\\ze\\t//e<Bar>:let @/=_s<Bar>:unlet _s<CR>', opts) -- trim whitespace before tabs and eol
+-- map.set("n", ",T", ":let _s=@/<Bar>:%s/\\s\\+$//e<Bar>%s/ \\+\\ze\\t//e<Bar>:let @/=_s<Bar>:unlet _s<CR>", opts) -- trim whitespace before tabs and eol
 
 -- better indenting
 map.set("v", "<", "<gv") -- allow multiple indentation in visual mode
@@ -153,8 +159,6 @@ map.set(
 	{ noremap = true, desc = "Search notes for selected word" }
 )
 map.set("n", "<leader>[", ":Nls ", { noremap = true, desc = "Search notes for word" })
-map.set("n", "<localleader>[", "<Cmd>cprev<CR>", { noremap = true, desc = "quickfix previous" })
-map.set("n", "<localleader>]", "<Cmd>cnext<CR>", { noremap = true, desc = "quickfix next" })
 map.set(
 	"n",
 	"<localleader>,",

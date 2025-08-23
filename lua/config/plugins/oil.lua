@@ -5,6 +5,7 @@ return {
 		{ "echasnovski/mini.icons", opts = {} },
 		"tpope/vim-eunuch",
 	},
+	lazy = false,
 	keys = {
 		{ "-", "<CMD>Oil<CR>", desc = "Open parent directory" },
 	},
