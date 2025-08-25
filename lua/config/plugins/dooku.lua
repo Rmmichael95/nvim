@@ -5,7 +5,7 @@ return {
 	config = true,
 	opts = {
 		-- your config options here
-		project_root = { ".git", ".hg", ".svn", ".bzr", "_darcs", "_FOSSIL_", ".fslckout" }, -- when one of these files is found, consider that directory the project root. Search starts upwards from the current buffer.
+		project_root = { ".git", ".hg", ".svn", ".bzr", "_darcs", "_FOSSIL_", ".fslckout", "Makefile", "makefile" }, -- when one of these files is found, consider that directory the project root. Search starts upwards from the current buffer.
 		browser_cmd = "xdg-open", -- write your internet browser here. If unset, it will attempt to detect it automatically.
 
 		-- automations
@@ -17,7 +17,4 @@ return {
 		on_generate_notification = true,
 		on_open_notification = true,
 	},
-	-- config = function(_, opts)
-	-- 	require("dooku").setup(opts)
-	-- end,
 }

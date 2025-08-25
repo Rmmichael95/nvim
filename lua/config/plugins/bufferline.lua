@@ -1,6 +1,6 @@
 return {
 	"akinsho/bufferline.nvim",
-	dependencies = { "nvim-tree/nvim-web-devicons" },
+	dependencies = { "echasnovski/mini.icons" },
 	event = { "BufAdd", "BufDelete" },
 	config = true,
 	opts = {

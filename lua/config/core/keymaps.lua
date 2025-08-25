@@ -22,7 +22,7 @@ endfor
 ]])
 
 -- Clear search with <esc>
--- map({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and Clear hlsearch" })
+map.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and Clear hlsearch" })
 
 -- Clear search, diff update and redraw
 -- taken from runtime/lua/_editor.lua
@@ -40,8 +40,6 @@ map.set("c", "<C-K>", "<C-U>") -- bash like keys for the command line
 map.set("c", "cd.", "<Cmd>lcd %:p:h<CR>") -- :cd. change working directory to that of the current file
 
 map.set("c", "/", "/\v") -- use sane regexes
-
-map.set("n", "<leader>y", ':if expand("%:e") == "h" | e %:r.cpp | else | e %:r.h | endif<CR>') -- switch between cpp/h files
 
 map.set("n", "n", "nzzzv") -- keep search in center screen
 map.set("n", "N", "Nzzzv") -- keep search in center screen

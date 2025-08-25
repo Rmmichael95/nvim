@@ -60,27 +60,33 @@ return {
 				},
 			},
 			menu = {
-				components = {
-					kind_icon = {
-						text = function(ctx)
-							local kind_icon, _, _ = require("mini.icons").get("lsp", ctx.kind)
-							return kind_icon
-						end,
-						-- (optional) use highlights from mini.icons
-						highlight = function(ctx)
-							local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
-							return hl
-						end,
-					},
-					kind = {
-						-- (optional) use highlights from mini.icons
-						highlight = function(ctx)
-							local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
-							return hl
-						end,
-					},
-				},
 				draw = {
+					padding = { 0, 1 }, -- padding only on right side; for lspkind
+					components = {
+						kind_icon = { -- for lspkind
+							text = function(ctx)
+								return " " .. ctx.kind_icon .. ctx.icon_gap .. " "
+							end,
+						},
+						-- kind_icon = { -- for mini.icons
+						-- 	text = function(ctx)
+						-- 		local kind_icon, _, _ = require("mini.icons").get("lsp", ctx.kind)
+						-- 		return kind_icon
+						-- 	end,
+						-- 	-- (optional) use highlights from mini.icons
+						-- 	highlight = function(ctx)
+						-- 		local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+						-- 		return hl
+						-- 	end,
+						-- },
+						-- kind = { -- for mini.icons
+						-- 	-- (optional) use highlights from mini.icons
+						-- 	highlight = function(ctx)
+						-- 		local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+						-- 		return hl
+						-- 	end,
+						-- },
+					},
 					treesitter = { "lsp" },
 					columns = {
 						{ "label", "label_description", gap = 1 },
