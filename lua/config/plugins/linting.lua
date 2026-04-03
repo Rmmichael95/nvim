@@ -30,7 +30,6 @@ return {
 
 		lint.linters_by_ft = {
 			-- text = { "codespell" },
-			-- markdown = { "markdownlint" },
 			-- json = { "jsonlint" },
 			-- css = { "stylelint" },
 			-- scss = { "stylelint" },
@@ -40,6 +39,7 @@ return {
 			javascript = { "eslint_d" },
 			typescript = { "eslint_d" },
 			javascriptreact = { "eslint_d" },
+			markdown = { "markdownlint-cli2" },
 			typescriptreact = { "eslint_d" },
 			svelte = { "eslint_d" },
 			php = { "phpcs" },

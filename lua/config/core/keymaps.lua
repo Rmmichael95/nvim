@@ -39,7 +39,8 @@ map.set("c", "<C-K>", "<C-U>") -- bash like keys for the command line
 
 map.set("c", "cd.", "<Cmd>lcd %:p:h<CR>") -- :cd. change working directory to that of the current file
 
-map.set("c", "/", "/\v") -- use sane regexes
+-- Very Magic Mode
+-- map.set("c", "/", "/\\v") -- use sane regexes
 
 map.set("n", "n", "nzzzv") -- keep search in center screen
 map.set("n", "N", "Nzzzv") -- keep search in center screen
@@ -106,16 +107,13 @@ map.set("i", "<A-k>", "<esc><Cmd>m .-2<cr>==gi", { desc = "Move Up" })
 map.set("v", "<A-j>", "<Cmd><C-u>execute \"'<,'>move '>+\" . v:count1<cr>gv=gv", { desc = "Move Down" })
 map.set("v", "<A-k>", "<Cmd><C-u>execute \"'<,'>move '<-\" . (v:count1 + 1)<cr>gv=gv", { desc = "Move Up" })
 
-map.set("c", ",S", "w !sudo tee > /dev/null %", { noremap = false, desc = "Save as SUDO" })
+map.set("c", ",S", "<Cmd>w !sudo tee > /dev/null %<CR>", { noremap = false, desc = "Save as SUDO" })
 map.set("n", ",q", "<Cmd>q!<CR>") -- easy quit
 map.set("n", ",w", "<Cmd>w!<CR>") -- easy write
 map.set("n", ",W", "<Cmd>w!!<CR>") -- force quit
 map.set("n", ",z", "<Cmd>wq!<CR>") -- force save quit
 map.set("n", ",d", "<Cmd>_d<CR>") -- delete to blackhole buffer
-map.set("n", ",e", "<Cmd>w!<CR><Cmd>e %<Cmd>h<CR>") -- open file dir
-
-map.set("n", "Y", "y$") -- fix Y behaviour
-map.set("n", "D", "d$") -- fix D behaviour
+map.set("n", ",e", "<Cmd>w!<CR>:e<CR>") -- reload file
 
 map.set("n", ",cd", "<Cmd>cd %:p:h<CR>:pwd<CR>") -- change wd to where the file in the buffer is located w/ `,cd`
 
@@ -157,9 +155,3 @@ map.set(
 	{ noremap = true, desc = "Search notes for selected word" }
 )
 map.set("n", "<leader>[", ":Nls ", { noremap = true, desc = "Search notes for word" })
-map.set(
-	"n",
-	"<localleader>,",
-	"<CR><C-w>p",
-	{ buffer = true, noremap = true, silent = true, desc = "Return to list quickfix window" }
-)

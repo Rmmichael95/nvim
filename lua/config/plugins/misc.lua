@@ -36,4 +36,8 @@ return {
 	{
 		"easymotion/vim-easymotion", -- added text motions
 	},
+	{
+		"ryansaxe/buffergolf.nvim",
+		dependencies = { "nvim-mini/mini.diff" },
+	},
 }

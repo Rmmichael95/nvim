@@ -1,26 +1,50 @@
 return {
 	"yetone/avante.nvim",
-	lazy = true,
-	version = false, -- set this if you want to always pull the latest change
-	opts = {
-		file_types = { "Avante" },
-	},
-	ft = { "Avante" },
 	-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
-	build = "make",
-	-- build = "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" -- for windows
+	-- ⚠️ must add this setting! ! !
+	build = vim.fn.has("win32") ~= 0 and "powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false"
+		or "make",
+	event = "VeryLazy",
+	version = false, -- Never set this value to "*"! Never!
+	---@module 'avante'
+	---@type avante.Config
+	opts = {
+		-- add any opts here
+		-- this file can contain specific instructions for your project
+		instructions_file = "avante.md",
+		-- for example
+		provider = "openai",
+		providers = {
+			claude = {
+				endpoint = "https://api.anthropic.com",
+				model = "claude-sonnet-4-20250514",
+				timeout = 30000, -- Timeout in milliseconds
+				extra_request_body = {
+					temperature = 0.75,
+					max_tokens = 20480,
+				},
+			},
+			openai = {
+				endpoint = "https://api.openai.com/v1",
+				model = "gpt-5",
+				timeout = 30000, -- Timeout in milliseconds
+				extra_request_body = {
+					temperature = 0.75,
+					max_tokens = 32768,
+				},
+			},
+		},
+	},
 	dependencies = {
-		"nvim-treesitter/nvim-treesitter",
-		"stevearc/dressing.nvim",
 		"nvim-lua/plenary.nvim",
 		"MunifTanjim/nui.nvim",
 		--- The below dependencies are optional,
-		"echasnovski/mini.icons", -- or nvim-tree/nvim-web-devicons
+		"folke/snacks.nvim", -- for input provider snacks
 		"zbirenbaum/copilot.lua", -- for providers='copilot'
 		{
 			-- support for image pasting
 			"HakonHarnes/img-clip.nvim",
-			lazy = true,
+			event = "VeryLazy",
 			opts = {
 				-- recommended settings
 				default = {

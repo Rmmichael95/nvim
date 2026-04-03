@@ -25,8 +25,6 @@ g.netrw_winsize = 25
 g.loaded_netrwPlugin = 1
 
 g.autoformat = true
-g.deprecation_warnings = false -- Hide deprecation warnings
-vim.deprecate = function() end -- Hide deprecation warnings
 
 -- Set filetype to `bigfile` for files larger than 1.5 MB
 -- Only vim syntax will be enabled (with the correct filetype)
@@ -95,7 +93,7 @@ o.pumheight = 10 -- Maximum number of entries in a popup
 o.showmode = false -- Dont show mode since we have a statusline
 o.scrolloff = 4 -- Lines of context
 o.sidescrolloff = 8 -- Columns of context
---o.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp", "folds" }
+o.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp", "folds" }
 
 -- only set clipboard if not in ssh, to make sure the OSC 52
 -- integration works automatically. Requires Neovim >= 0.10.0
@@ -110,10 +108,6 @@ o.diffopt = "filler,internal,closeoff,algorithm:histogram,context:5,linematch:60
 -- set colorscheme
 o.termguicolors = true -- enable 24bit colors in TUI, uses guibg/guifg
 o.background = "dark" -- set background dark/light
-
--- highlight 81st column darkred on lines that run long
-cmd([[autocmd BufEnter,FocusGained,BufWinEnter,WinEnter * match ColorColumn "\%81v."]])
-cmd("highlight ColorColumn guibg=darkred")
 
 o.showbreak = "↪" -- str to put at beginning of wrapped lines
 o.list = true -- show whitesoace chars
@@ -135,24 +129,26 @@ o.fillchars = {
 	eob = " ",
 }
 -- file encoding
+o.encoding = "utf-8" -- file content encoding for current buffer
 o.fileencoding = "utf-8" -- file content encoding for current buffer
 o.fileencodings = "utf-8" -- list of encoding considered when starting a file
 o.fileformats = { "unix", "dos", "mac" } -- gives eol formats
 --o.formatpgr     = "par"    -- name of external program used to format lines
 o.foldlevel = 99
---o.formatexpr = "v:lua.require'lazyvim.util'.format.formatexpr()"
+o.formatexpr = "v:lua.require'lazyvim.util'.format.formatexpr()"
 o.formatoptions = "jcroqlnt" -- tcqj
 o.grepformat = "%f:%l:%c:%m"
 
 --no special symbol input for all files
--- o.iminsert = 0
--- o.imsearch = 0
+o.iminsert = 0
+o.imsearch = 0
 
 -- backups
+local state_dir = vim.fn.stdpath("state")
+o.backupdir = state_dir .. "/backup/" -- where to store backup files
+o.undodir = state_dir .. "/undo/" -- where to store undo files
+o.directory = state_dir .. "/swap/" -- where to store swap files
 o.backupskip = "/tmp/*,/private/tmp/*,*.gpg" -- don't backup filename with these patterns
-o.backupdir = "/home/ryanm/.local/state/nvim/backup/" -- where to store backup files
-o.undodir = "/home/ryanm/.local/state/nvim/undo/" -- where to store undo files
-o.directory = "/home/ryanm/.local/state/nvim/swap/" -- where to store swap files
 o.backup = true -- make backup before overwriting files
 o.swapfile = false -- its 2014, just do backups
 o.undofile = true -- undo across edits
@@ -169,15 +165,10 @@ o.shortmess = o.shortmess + "o" -- overwrite file-written messages
 o.shortmess = o.shortmess + "t" -- truncate file messages at start
 o.shortmess:append({ W = true, I = true, c = true, C = true })
 
--- make dirs for backup
-cmd([[
-if !isdirectory(expand(&undodir))
-    call mkdir(expand(&undodir), 'p')
-endif
-if !isdirectory(expand(&backupdir))
-    call mkdir(expand(&backupdir), 'p')
-endif
-if !isdirectory(expand(&directory))
-    call mkdir(expand(&directory), 'p')
-endif
-]])
+-- Create directories if they don't exist
+local dirs = { vim.o.undodir, vim.o.backupdir, vim.o.directory }
+for _, dir in ipairs(dirs) do
+	if vim.fn.isdirectory(dir) == 0 then
+		vim.fn.mkdir(dir, "p")
+	end
+end

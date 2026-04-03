@@ -9,11 +9,8 @@ return {
 		cmd = "Make",
 		opts = {
 			create_mappings = true,
-			components = { "user.track_history" },
+			-- components = { "user.track_history" },
 		},
-		config = function(_, opts)
-			require("officer").setup(opts)
-		end,
 	},
 	{
 		{
@@ -21,7 +18,7 @@ return {
 			opts = {},
 			dependencies = "stevearc/overseer.nvim",
 			keys = {
-				{ "<leader>or", "<Cmd>OverseerRun<CR>" },
+				{ "<leader>ob", "<Cmd>OverseerRun<CR>" },
 				{ "<leader>ot", "<Cmd>OverseerToggle<CR>" },
 			},
 		},

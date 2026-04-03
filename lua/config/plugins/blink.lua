@@ -10,6 +10,7 @@ return {
 		"mikavilpas/blink-ripgrep.nvim",
 		"kristijanhusak/vim-dadbod-completion",
 		"echasnovski/mini.icons",
+		"Kaiser-Yang/blink-cmp-avante",
 	},
 	-- use a release tag to download pre-built binaries
 	version = "*",
@@ -108,13 +109,21 @@ return {
 		sources = {
 			-- adding any nvim-cmp sources here will enable them
 			-- with blink.compat
-			default = { "lsp", "path", "snippets", "buffer", "ripgrep" },
+			-- can add ripgrep
+			default = { "lsp", "avante", "path", "snippets", "buffer" },
 			per_filetype = {
 				sql = { "dadbod" },
 				-- optionally inherit from the `default` sources
 				-- lua = { inherit_defaults = true, "lazydev" },
 			},
 			providers = {
+				avante = {
+					module = "blink-cmp-avante",
+					name = "Avante",
+					opts = {
+						-- options for blink-cmp-avante
+					},
+				},
 				dadbod = { module = "vim_dadbod_completion.blink" },
 				ripgrep = {
 					module = "blink-ripgrep",
