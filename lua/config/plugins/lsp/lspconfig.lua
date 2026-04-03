@@ -256,7 +256,7 @@ return {
 			vim.lsp.config("ltex", {
 				capabilities = capabilities,
 			})
-			vim.lsp.enable("phpactor")
+			--vim.lsp.enable("phpactor")
 			vim.lsp.config("phpactor", {
 				capabilities = capabilities,
 			})
@@ -513,8 +513,8 @@ return {
 						},
 						environment = {
 							includePaths = {
-								"/home/ryanm/.config/composer/vendor/php-stubs/",
-								"/home/ryanm/.config/composer/vendor/wpsyntex/",
+								"~/.config/composer/vendor/php-stubs/",
+								"~/.config/composer/vendor/wpsyntex/",
 							}, -- this line forces the composer path for the stubs in case inteliphense can't find it...
 							-- root_dir = vim.loop.cwd,
 						},

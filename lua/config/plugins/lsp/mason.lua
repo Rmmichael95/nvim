@@ -23,6 +23,9 @@ return {
 			"vim-language-server",
 			"texlab",
 			"zls",
+			"omnisharp",
+			"csharpier",
+			"intelephense",
 			-- DAP
 			"cpptools",
 			"debugpy",
