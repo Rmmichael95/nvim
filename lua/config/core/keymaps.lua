@@ -45,7 +45,7 @@ map.set("c", "cd.", "<Cmd>lcd %:p:h<CR>") -- :cd. change working directory to th
 map.set("n", "n", "nzzzv") -- keep search in center screen
 map.set("n", "N", "Nzzzv") -- keep search in center screen
 map.set("n", "H", "^") -- keep search in center screen
-map.set("n", "L", "g") -- keep search in center screen
+map.set("n", "L", "g_") -- keep search in center screen
 map.set("n", "g;", "g;zz") -- keep search in center screen
 map.set("n", "g,", "g,zz") -- keep search in center screen
 map.set("n", "<c-o>", "<c-o>zz") -- keep search in center screen
@@ -79,8 +79,11 @@ map.set("n", "<C-t><C-z>", "<Cmd>tabclose<CR>") -- easy close tab
 map.set("n", "<C-t><C-n>", "<Cmd>tabn<CR>") -- easy next tab
 map.set("n", "<C-t><C-p>", "<Cmd>tabp<CR>") -- easy prev tab
 
-vim.keymap.set("n", "<C-k>", "<cmd>cnext<CR>zz")
-vim.keymap.set("n", "<C-j>", "<cmd>cprev<CR>zz")
+map.set("n", "]q", "<cmd>cnext<CR>zz", { desc = "Next quickfix" })
+map.set("n", "[q", "<cmd>cprev<CR>zz", { desc = "Prev quickfix" })
+map.set("n", "]Q", "<cmd>clast<CR>zz", { desc = "Last quickfix" })
+map.set("n", "[Q", "<cmd>cfirst<CR>zz", { desc = "First quickfix" })
+
 vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
 vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 
