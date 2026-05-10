@@ -1,12 +1,43 @@
 return {
 	{
-		"romus204/tree-sitter-manager.nvim",
-		lazy = false,
-		event = { "BufReadPre", "BufNewFile" },
-		opts = {},
-		-- Note: You must have the `tree-sitter` CLI and a C compiler installed on your system
-		config = function()
-			require("tree-sitter-manager").setup()
+		-- community fork of the archived nvim-treesitter/nvim-treesitter
+		"neovim-treesitter/nvim-treesitter",
+		dependencies = { "neovim-treesitter/treesitter-parser-registry" },
+		build = ":TSUpdate",
+		event = { "BufReadPost", "BufNewFile" },
+		-- main = "nvim-treesitter.configs",
+		opts = {
+			ensure_installed = {
+				"bash",
+				"c",
+				"cpp",
+				"css",
+				"html",
+				"javascript",
+				"typescript",
+				"json",
+				"lua",
+				"markdown",
+				"markdown_inline",
+				"python",
+				"rust",
+				"zig",
+				"vim",
+				"vimdoc",
+				"yaml",
+				"sql",
+				"c_sharp",
+				"tsx",
+				"graphql",
+				"php",
+				"r",
+			},
+			auto_install = true,
+			highlight = { enable = true },
+			indent = { enable = true },
+		},
+		config = function(_, opts)
+			require("nvim-treesitter").setup(opts)
 		end,
 	},
 	{
@@ -20,10 +51,6 @@ return {
 			"csv_pipe",
 			"rfc_csv",
 			"rfc_semicolon",
-			"c_sharp", -- C#
-			"tsx", -- React JSX with TypeScript
-			"css", -- needed for Tailwind class extraction
-			"graphql", -- if using GraphQL with React
 		},
 		cmd = {
 			"RainbowDelim",

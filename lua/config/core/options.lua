@@ -67,7 +67,8 @@ o.spell = false -- don't check spelling
 o.wrap = false -- don't wrap text lines
 o.foldenable = false -- start with fold open
 o.foldmethod = "expr" -- method to fold text; on expression
-o.foldexpr = "nvim_treesitter#foldexpr()" -- use treesitter to recognize told expression
+o.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- use treesitter to recognize told expression
+
 o.number = true -- show line number on left
 -- buffer options
 o.autoindent = true -- maintain indent of current line

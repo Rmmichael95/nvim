@@ -69,7 +69,7 @@ return {
 
 		-- ADD: auto-enable LSP servers after Mason installs them
 		require("mason-lspconfig").setup({
-			automatic_enable = true,
+			automatic_enable = false,
 		})
 
 		require("mason-tool-installer").setup(opts)

@@ -578,7 +578,7 @@ return {
 					keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
 
 					-- capability-gated keymaps (ADD these)
-					if client and client.supports_method("textDocument/rename") then
+					if client and client:supports_method("textDocument/rename") then
 						keymap.set(
 							"n",
 							"<leader>rn",
@@ -586,7 +586,7 @@ return {
 							vim.tbl_extend("force", opts, { desc = "Smart rename" })
 						)
 					end
-					if client and client.supports_method("textDocument/codeAction") then
+					if client and client:supports_method("textDocument/codeAction") then
 						keymap.set(
 							{ "n", "v" },
 							"<leader>ca",
@@ -596,17 +596,13 @@ return {
 					end
 
 					-- ADD: inlay hints (works for both Roslyn and ts_ls)
-					if client and client.supports_method("textDocument/inlayHint") then
+					if client and client:supports_method("textDocument/inlayHint") then
 						vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
 					end
 
 					-- ADD: code lenses (Roslyn shows reference/impl counts inline)
-					if client and client.supports_method("textDocument/codeLens") then
-						vim.lsp.codelens.refresh()
-						vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
-							buffer = ev.buf,
-							callback = vim.lsp.codelens.refresh,
-						})
+					if client and client:supports_method("textDocument/codeLens") then
+						vim.lsp.codelens.enable(true, { bufnr = ev.buf })
 					end
 
 					-- ADD: toggle inlay hints keymap
