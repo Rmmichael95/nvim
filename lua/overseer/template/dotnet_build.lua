@@ -1,11 +1,16 @@
 return {
-	name = "dotnet build",
+	name = "dotnet-build",
 	builder = function()
 		return {
 			cmd = { "dotnet" },
 			args = { "build" },
 			components = {
-				{ "on_output_quickfix", open_on_match = true },
+				{
+					"on_output_quickfix",
+					open_on_match = true,
+					set_diagnostics = true,
+					errorformat = "%f(%l\\,%c): %t%*[^ ] %m",
+				},
 				"on_result_diagnostics",
 				"default",
 			},

@@ -5,7 +5,7 @@ return {
 		keys = {
 			{
 				"<leader>M",
-				"<Cmd>OverseerRun dotnet build<CR>",
+				"<Cmd>OverseerRun dotnet-build<CR>",
 				desc = "dotnet build",
 			},
 			{
@@ -23,7 +23,7 @@ return {
 		},
 		opts = {
 			strategy = "terminal",
-			templates = { "builtin", "dotnet_build", "dotnet_watch" },
+			templates = { "builtin" },
 			template_dirs = { "overseer.template" },
 			auto_detect_success_color = true,
 			dap = true, -- lets overseer fire preLaunchTask from .vscode/launch.json

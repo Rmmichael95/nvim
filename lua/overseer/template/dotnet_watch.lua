@@ -1,5 +1,5 @@
 return {
-	name = "dotnet watch",
+	name = "dotnet-watch",
 	builder = function()
 		return {
 			cmd = { "dotnet" },
