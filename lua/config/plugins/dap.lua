@@ -6,7 +6,6 @@ return {
 			"nvim-neotest/nvim-nio",
 			"theHamsta/nvim-dap-virtual-text",
 			"williamboman/mason.nvim",
-			"jay-babu/mason-nvim-dap.nvim",
 			"folke/lazydev.nvim",
 		},
 		keys = {
@@ -185,7 +184,7 @@ return {
 
 			require("nvim-dap-virtual-text").setup(opts)
 
-			local path = require("mason-registry").get_package("php-debug-adapter"):get_install_path()
+			local path = vim.fn.stdpath("data") .. "/mason/packages/php-debug-adapter"
 			dap.adapters.php = {
 				type = "executable",
 				command = "node",
@@ -193,45 +192,106 @@ return {
 			}
 
 			if not dap.adapters["netcoredbg"] then
-				require("dap").adapters["netcoredbg"] = {
+				dap.adapters["netcoredbg"] = {
 					type = "executable",
 					command = vim.fn.exepath("netcoredbg"),
 					args = { "--interpreter=vscode" },
-					options = {
-						detached = false,
+					options = { detached = false },
+				}
+			end
+
+			for _, lang in ipairs({ "cs", "fsharp", "vb" }) do
+				dap.configurations[lang] = {
+					{
+						type = "netcoredbg",
+						name = "Launch (auto-discover dll)",
+						request = "launch",
+						program = function()
+							local dlls = vim.fn.glob(vim.fn.getcwd() .. "/bin/Debug/**/*.dll", true, true)
+							dlls = vim.tbl_filter(function(d)
+								return not d:match("testhost")
+									and not d:match("Microsoft%.")
+									and not d:match("xunit")
+									and not d:match("NUnit")
+							end, dlls)
+							if #dlls == 1 then
+								return dlls[1]
+							end
+							if #dlls > 1 then
+								return vim.fn.input("Multiple DLLs, pick: ", dlls[1], "file")
+							end
+							return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/bin/Debug/", "file")
+						end,
+						cwd = "${workspaceFolder}",
+						stopAtEntry = false,
+					},
+					{
+						type = "netcoredbg",
+						name = "Attach to process",
+						request = "attach",
+						processId = require("dap.utils").pick_process,
+						cwd = "${workspaceFolder}",
 					},
 				}
 			end
-			for _, lang in ipairs({ "cs", "fsharp", "vb" }) do
-				if not dap.configurations[lang] then
-					dap.configurations[lang] = {
-						{
-							type = "netcoredbg",
-							name = "Launch file",
-							request = "launch",
-							---@diagnostic disable-next-line: redundant-parameter
-							program = function()
-								return vim.fn.input("Path to dll: ", vim.fn.getcwd() .. "/", "file")
-							end,
-							cwd = "${workspaceFolder}",
-						},
-					}
-				end
+
+			local js_debug_path = vim.fn.stdpath("data") .. "/mason/packages/js-debug-adapter"
+
+			dap.adapters["pwa-node"] = {
+				type = "server",
+				host = "localhost",
+				port = "${port}",
+				executable = {
+					command = "node",
+					args = {
+						js_debug_path .. "/js-debug/src/dapDebugServer.js",
+						"${port}",
+					},
+				},
+			}
+
+			dap.adapters["pwa-chrome"] = {
+				type = "server",
+				host = "localhost",
+				port = "${port}",
+				executable = {
+					command = "node",
+					args = {
+						js_debug_path .. "/js-debug/src/dapDebugServer.js",
+						"${port}",
+					},
+				},
+			}
+
+			for _, lang in ipairs({ "typescript", "javascript", "typescriptreact", "javascriptreact" }) do
+				dap.configurations[lang] = dap.configurations[lang] or {}
+				vim.list_extend(dap.configurations[lang], {
+					{
+						type = "pwa-node",
+						request = "launch",
+						name = "Launch Node (current file)",
+						program = "${file}",
+						cwd = "${workspaceFolder}",
+						sourceMaps = true,
+					},
+					{
+						type = "pwa-node",
+						request = "attach",
+						name = "Attach to Node process",
+						processId = require("dap.utils").pick_process,
+						cwd = "${workspaceFolder}",
+						sourceMaps = true,
+					},
+					{
+						type = "pwa-chrome",
+						request = "launch",
+						name = "Debug React in Chrome",
+						url = "http://localhost:3000",
+						webRoot = "${workspaceFolder}/src",
+						sourceMaps = true,
+					},
+				})
 			end
 		end,
-	},
-	{
-		"nvim-neotest/neotest",
-		optional = true,
-		dependencies = {
-			"Issafalcon/neotest-dotnet",
-		},
-		opts = {
-			adapters = {
-				["neotest-dotnet"] = {
-					-- Here we can set options for neotest-dotnet
-				},
-			},
-		},
 	},
 }

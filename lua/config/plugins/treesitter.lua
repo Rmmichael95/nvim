@@ -20,6 +20,10 @@ return {
 			"csv_pipe",
 			"rfc_csv",
 			"rfc_semicolon",
+			"c_sharp", -- C#
+			"tsx", -- React JSX with TypeScript
+			"css", -- needed for Tailwind class extraction
+			"graphql", -- if using GraphQL with React
 		},
 		cmd = {
 			"RainbowDelim",

@@ -1,7 +1,6 @@
 return {
 	{
 		"neovim/nvim-lspconfig",
-		version = "1.32.0",
 		event = { "BufReadPre", "BufNewFile" },
 		dependencies = {
 			"saghen/blink.cmp",
@@ -9,7 +8,6 @@ return {
 			"folke/lazydev.nvim",
 			"echasnovski/mini.icons",
 			"p00f/clangd_extensions.nvim",
-			{ "Hoffs/omnisharp-extended-lsp.nvim", lazy = true },
 			"Issafalcon/neotest-dotnet",
 			"R-nvim/R.nvim",
 			"shunsambongi/neotest-testthat",
@@ -184,37 +182,44 @@ return {
 			vim.lsp.enable("tailwindcss")
 			vim.lsp.config("tailwindcss", {
 				capabilities = capabilities,
-				-- exclude a filetype from the default_config
-				filetypes_exclude = { "markdown" },
-				-- add additional filetypes to the default_config
-				filetypes_include = {},
-				-- to fully override the default_config, change the below
-				-- filetypes = {}
-			})
-			vim.lsp.enable("omnisharp")
-			vim.lsp.config("omnisharp", {
-				capabilities = capabilities,
-				handlers = {
-					["textDocument/definition"] = function(...)
-						return require("omnisharp_extended").handler(...)
-					end,
+				filetypes = {
+					"html",
+					"css",
+					"scss",
+					"less",
+					"javascript",
+					"javascriptreact",
+					"javascript.jsx",
+					"typescript",
+					"typescriptreact",
+					"typescript.tsx",
+					"svelte",
+					"vue",
+					"astro",
+					"php",
 				},
-				keys = {
-					{
-						"gd",
-						function()
-							require("omnisharp_extended").lsp_definitions()
-						end,
-						desc = "Goto Definition",
+				settings = {
+					tailwindCSS = {
+						-- Teach tailwind to understand jsx className values
+						includeLanguages = {
+							typescript = "javascript",
+							typescriptreact = "javascript",
+							javascriptreact = "javascript",
+						},
+						-- Detect tailwind classes inside utility functions (cva, cn, clsx, etc.)
+						experimental = {
+							classRegex = {
+								{ "cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]" },
+								{ "cx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+								{ "cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+								{ "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+								{ "twMerge\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)" },
+								"class:([\\w\\d\\-/:]+)",
+							},
+						},
+						validate = true,
 					},
 				},
-				enable_roslyn_analyzers = true,
-				organize_imports_on_format = true,
-				enable_import_completion = true,
-			})
-			vim.lsp.enable("perlnavigator")
-			vim.lsp.config("perlnavigator", {
-				capabilities = capabilities,
 			})
 			vim.lsp.enable("perlnavigator")
 			vim.lsp.config("wasm_language_tools", {
@@ -302,6 +307,42 @@ return {
 			vim.lsp.enable("ts_ls")
 			vim.lsp.config("ts_ls", {
 				capabilities = capabilities,
+				filetypes = {
+					"javascript",
+					"javascriptreact",
+					"javascript.jsx",
+					"typescript",
+					"typescriptreact",
+					"typescript.tsx",
+				},
+				settings = {
+					typescript = {
+						inlayHints = {
+							includeInlayParameterNameHints = "all",
+							includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+							includeInlayFunctionParameterTypeHints = true,
+							includeInlayVariableTypeHints = true,
+							includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+							includeInlayPropertyDeclarationTypeHints = true,
+							includeInlayFunctionLikeReturnTypeHints = true,
+							includeInlayEnumMemberValueHints = true,
+						},
+						preferences = {
+							importModuleSpecifier = "relative",
+						},
+					},
+					javascript = {
+						inlayHints = {
+							includeInlayParameterNameHints = "all",
+							includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+							includeInlayFunctionParameterTypeHints = true,
+							includeInlayVariableTypeHints = true,
+							includeInlayPropertyDeclarationTypeHints = true,
+							includeInlayFunctionLikeReturnTypeHints = true,
+							includeInlayEnumMemberValueHints = true,
+						},
+					},
+				},
 			})
 			vim.lsp.enable("vimls")
 			vim.lsp.config("vimls", {
@@ -530,29 +571,59 @@ return {
 			vim.api.nvim_create_autocmd("LspAttach", {
 				group = vim.api.nvim_create_augroup("UserLspConfig", {}),
 				callback = function(ev)
-					-- Buffer local mappings.
-					-- See `:help vim.lsp.*` for documentation on any of the below functions
 					local opts = { buffer = ev.buf, silent = true }
+					local client = vim.lsp.get_client_by_id(ev.data.client_id)
 
-					-- set keybinds
-					vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, bufopts)
+					-- existing keymaps stay as-is...
+					keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, opts)
 
-					vim.keymap.set("n", "<space>ca", vim.lsp.buf.code_action, bufopts)
+					-- capability-gated keymaps (ADD these)
+					if client and client.supports_method("textDocument/rename") then
+						keymap.set(
+							"n",
+							"<leader>rn",
+							vim.lsp.buf.rename,
+							vim.tbl_extend("force", opts, { desc = "Smart rename" })
+						)
+					end
+					if client and client.supports_method("textDocument/codeAction") then
+						keymap.set(
+							{ "n", "v" },
+							"<leader>ca",
+							vim.lsp.buf.code_action,
+							vim.tbl_extend("force", opts, { desc = "Code actions" })
+						)
+					end
 
-					opts.desc = "See available code actions"
-					keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts) -- see available code actions, in visual mode will apply to selection
+					-- ADD: inlay hints (works for both Roslyn and ts_ls)
+					if client and client.supports_method("textDocument/inlayHint") then
+						vim.lsp.inlay_hint.enable(true, { bufnr = ev.buf })
+					end
 
-					opts.desc = "Smart rename"
-					keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts) -- smart rename
+					-- ADD: code lenses (Roslyn shows reference/impl counts inline)
+					if client and client.supports_method("textDocument/codeLens") then
+						vim.lsp.codelens.refresh()
+						vim.api.nvim_create_autocmd({ "BufEnter", "CursorHold", "InsertLeave" }, {
+							buffer = ev.buf,
+							callback = vim.lsp.codelens.refresh,
+						})
+					end
 
-					opts.desc = "Show line diagnostics"
-					keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- show diagnostics for line
+					-- ADD: toggle inlay hints keymap
+					keymap.set("n", "<leader>uh", function()
+						vim.lsp.inlay_hint.enable(
+							not vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf }),
+							{ bufnr = ev.buf }
+						)
+					end, vim.tbl_extend("force", opts, { desc = "Toggle inlay hints" }))
 
-					opts.desc = "Show documentation for what is under cursor"
-					keymap.set("n", "H", vim.lsp.buf.hover, opts) -- show documentation for what is under cursor
-
-					opts.desc = "Restart LSP"
-					keymap.set("n", "<leader>rs", ":LspRestart<CR>", opts) -- mapping to restart lsp if necessary
+					-- ADD: run code lens keymap
+					keymap.set(
+						"n",
+						"<leader>cc",
+						vim.lsp.codelens.run,
+						vim.tbl_extend("force", opts, { desc = "Run codelens" })
+					)
 				end,
 			})
 		end,

@@ -59,6 +59,9 @@ vim.filetype.add({
 		zig = "zig",
 		c = "c",
 		cpp = "cpp",
+		cs = "cs",
+		tsx = "typescriptreact",
+		jsx = "javascriptreact",
 		h = function(path, bufnr)
 			if vim.fn.search("\\C^#include <[^>.]\\+>$", "nw") ~= 0 then
 				return "cpp"

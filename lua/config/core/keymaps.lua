@@ -64,7 +64,7 @@ map.set("n", ";", ":") -- easy command mode
 map.set("n", "V", "V`]") -- easy linewise reselection of what you just paste
 
 map.set("n", "q:", "<nop>") -- disable cmd history popup
-map.set("n", "Q", "<nop>") -- disable cmd history popup
+map.set("n", "Q", "gq") -- disable cmd history popup
 
 map.set("n", "<leader>|", "<Cmd>vsplit<CR>") -- easy vertical split
 map.set("n", "<leader>-", "<Cmd>split<CR>") -- easy horizontal split

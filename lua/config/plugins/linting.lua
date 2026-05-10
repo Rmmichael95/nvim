@@ -19,9 +19,9 @@ return {
 		local phpcs = lint.linters.phpcs
 		--phpcs.cmd = "phpcs"
 		--phpcs.cmd = vim.fn.getcwd() .. "/vendor/bin/phpcs"
-		--phpcs.cmd = vim.fn.stdpath("data") .. "/mason/bin/phpcs"
-		phpcs.cmd = "/home/ryanm/.config/composer/vendor/bin/phpcs"
-		--phpcs.stdin = false
+		phpcs.cmd = vim.fn.stdpath("data") .. "/mason/bin/phpcs"
+		-- phpcs.cmd = "/home/ryanm/.config/composer/vendor/bin/phpcs"
+		phpcs.stdin = false
 		phpcs.args = {
 			"-q",
 			"--standard=WordPress",
@@ -36,6 +36,7 @@ return {
 			-- html = { "htmllint" },
 			c = { "cpplint" },
 			cpp = { "cpplint" },
+			cs = {}, -- LSP handles this; placeholder for future dotnet build linter
 			javascript = { "eslint_d" },
 			typescript = { "eslint_d" },
 			javascriptreact = { "eslint_d" },
@@ -47,13 +48,13 @@ return {
 			["*"] = { "codespell" },
 		}
 
-		-- local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
-		--
-		-- vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
-		-- 	group = lint_augroup,
-		-- 	callback = function()
-		-- 		lint.try_lint()
-		-- 	end,
-		-- })
+		local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
+
+		vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
+			group = lint_augroup,
+			callback = function()
+				lint.try_lint()
+			end,
+		})
 	end,
 }

@@ -1,13 +1,13 @@
 return {
 	"mason-org/mason.nvim",
-	version = "1.11.0",
 	dependencies = {
-		"jay-babu/mason-nvim-dap.nvim",
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		-- ADD: bridges Mason → vim.lsp.enable() after install
+		"mason-org/mason-lspconfig.nvim",
 	},
 	cmd = "Mason",
 	keys = { { "<leader>cm", "<cmd>Mason<cr>", desc = "Mason" } },
-	build = ":MasonUpdate",
+	-- build = ":MasonUpdate",
 	opts = {
 		ensure_installed = {
 			-- LSP
@@ -23,9 +23,13 @@ return {
 			"vim-language-server",
 			"texlab",
 			"zls",
-			"omnisharp",
+			-- C# — roslyn replaces omnisharp
+			"roslyn",
+			"netcoredbg",
 			"csharpier",
 			"intelephense",
+			-- React / JS
+			"js-debug-adapter",
 			-- DAP
 			"cpptools",
 			"debugpy",
@@ -33,12 +37,12 @@ return {
 			"php-debug-adapter",
 			-- conform
 			"clang-format",
-			"prettier", -- prettier formatter
-			"phpcbf", -- php formatting w/code sniffer
+			"prettier",
+			"phpcbf",
 			"phpactor",
-			"stylua", -- lua formatter
-			"isort", -- python formatter
-			"black", -- python formatter
+			"stylua",
+			"isort",
+			"black",
 			-- lint
 			"codespell",
 			"cpplint",
@@ -47,9 +51,13 @@ return {
 			"eslint_d",
 		},
 	},
-	---@param opts MasonSettings | {ensure_installed: string[]}
 	config = function(_, opts)
 		require("mason").setup({
+			-- ADD: Crashdummyy registry for roslyn
+			registries = {
+				"github:Crashdummyy/mason-registry",
+				"github:mason-org/mason-registry",
+			},
 			ui = {
 				icons = {
 					package_installed = "✓",
@@ -59,14 +67,11 @@ return {
 			},
 		})
 
-		require("mason-tool-installer").setup(opts)
-
-		require("mason-nvim-dap").setup({
-			handlers = {
-				function(config)
-					require("mason-nvim-dap").default_setup(config)
-				end,
-			},
+		-- ADD: auto-enable LSP servers after Mason installs them
+		require("mason-lspconfig").setup({
+			automatic_enable = true,
 		})
+
+		require("mason-tool-installer").setup(opts)
 	end,
 }
