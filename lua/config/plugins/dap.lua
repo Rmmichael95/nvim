@@ -127,7 +127,15 @@ return {
 		},
 		config = function(_, opts)
 			local dap, ui = require("dap"), require("dapui")
-			ui.setup()
+			ui.setup({
+				icons = { expanded = "▾", collapsed = "▸", current_frame = "▸" }, -- ← Nerd Font tree glyphs
+				floating = {
+					border = "rounded", -- ← matches all other floats
+					mappings = { close = { "q", "<Esc>" } },
+				},
+				render = { max_type_length = nil, max_value_lines = 100 },
+				windows = { indent = 1 },
+			})
 
 			dap.adapters.firefox = {
 				type = "executable",
