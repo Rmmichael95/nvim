@@ -94,10 +94,12 @@ return {
 						{ "kind_icon", "kind" },
 					},
 				},
+				border = "rounded",
 			},
 			documentation = {
 				auto_show = true,
 				auto_show_delay_ms = 200,
+				window = { border = "rounded" },
 			},
 			ghost_text = {
 				enabled = vim.g.ai_cmp,
@@ -204,7 +206,7 @@ return {
 			},
 		},
 		-- Experimental signature help support
-		signature = { enabled = true },
+		signature = { enabled = true, window = { border = "rounded" } },
 	},
 	opts_extend = {
 		"sources.completion.enabled_providers",
