@@ -22,7 +22,7 @@ return {
       green    = '#a7c080',
       orange   = '#e69875',
       violet   = '#d699b6',
-      magenta  = '#f0c6c6',
+      magenta  = '#f5bde6',
       blue     = '#7fbbb3',
       red      = '#ed8796',
     }
