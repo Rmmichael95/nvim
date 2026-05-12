@@ -18,6 +18,7 @@ lsp.setup("html", {
 
 -- Emmet
 lsp.setup("emmet-language-server", {
+	cmd = { vim.fn.stdpath("data") .. "/mason/bin/emmet-language-server", "--stdio" },
 	filetypes = {
 		"html",
 		"css",

@@ -101,7 +101,6 @@ lsp.setup("intelephense", {
 				undefinedConstants = false, -- WP_DEBUG, ABSPATH, etc.
 				undefinedClassConstants = false,
 				undefinedTypes = false,
-				undefinedVariables = true, -- keep this one
 				unusedSymbols = false, -- WP often passes args you don't use
 			},
 			completion = {
@@ -111,7 +110,7 @@ lsp.setup("intelephense", {
 				maxItems = 100,
 			},
 			format = {
-				braces = "Allman", -- WP coding standard uses Allman brace style
+				braces = "allman", -- WP coding standard uses Allman brace style
 			},
 			files = { maxSize = 8000000 },
 		},
@@ -125,8 +124,20 @@ lsp.setup("phpactor", {
 		["workspace/configuration"] = function()
 			return {}
 		end,
+		-- Drop all incoming diagnostics pushed by Phpactor
+		["textDocument/publishDiagnostics"] = function() end,
 	},
+	on_init = function(client)
+		-- Intelephense is the primary provider for completion, hover, and diagnostics.
+		-- Phpactor's role here is refactoring and code actions only.
+		-- Without this, phpactor flags all WordPress functions as undefined because
+		-- it has no knowledge of WP stubs — intelephense handles that via its stubs config.
+		client.server_capabilities.completionProvider = nil
+		client.server_capabilities.hoverProvider = false
+		client.server_capabilities.diagnosticProvider = nil
+	end,
 	init_options = {
+
 		["language_server_phpstan.enabled"] = false,
 		["language_server_psalm.enabled"] = false,
 	},
