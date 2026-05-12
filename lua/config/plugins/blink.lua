@@ -64,29 +64,29 @@ return {
 				draw = {
 					padding = { 0, 1 }, -- padding only on right side; for lspkind
 					components = {
-						kind_icon = { -- for lspkind
+						kind_icon = {
+							-- blink's default lspkind map
 							text = function(ctx)
 								return " " .. ctx.kind_icon .. ctx.icon_gap .. " "
 							end,
+							-- For Mini
+							-- text = function(ctx)
+							-- 	local kind_icon, _, _ = require("mini.icons").get("lsp", ctx.kind)
+							-- 	return kind_icon
+							-- end,
+							-- Pull the HIGHLIGHT (the colors) from mini.icons
+							highlight = function(ctx)
+								local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+								return hl
+							end,
 						},
-						-- kind_icon = { -- for mini.icons
-						-- 	text = function(ctx)
-						-- 		local kind_icon, _, _ = require("mini.icons").get("lsp", ctx.kind)
-						-- 		return kind_icon
-						-- 	end,
-						-- 	-- (optional) use highlights from mini.icons
-						-- 	highlight = function(ctx)
-						-- 		local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
-						-- 		return hl
-						-- 	end,
-						-- },
-						-- kind = { -- for mini.icons
-						-- 	-- (optional) use highlights from mini.icons
-						-- 	highlight = function(ctx)
-						-- 		local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
-						-- 		return hl
-						-- 	end,
-						-- },
+						kind = {
+							-- Highlight the category text ("Function", "Class") with mini.icons
+							highlight = function(ctx)
+								local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+								return hl
+							end,
+						},
 					},
 					treesitter = { "lsp" },
 					columns = {
