@@ -39,10 +39,10 @@ return {
 				},
 				signs = {
 					text = {
-						[vim.diagnostic.severity.ERROR] = " ",
-						[vim.diagnostic.severity.WARN] = " ",
+						[vim.diagnostic.severity.ERROR] = " ",
+						[vim.diagnostic.severity.WARN] = " ",
 						[vim.diagnostic.severity.HINT] = "󰠠 ",
-						[vim.diagnostic.severity.INFO] = " ",
+						[vim.diagnostic.severity.INFO] = " ",
 					},
 				},
 			},
@@ -63,7 +63,7 @@ return {
 			if type(opts.diagnostics.virtual_text) == "table" and opts.diagnostics.virtual_text.prefix == "icons" then
 				opts.diagnostics.virtual_text.prefix = vim.fn.has("nvim-0.10.0") == 0 and "●"
 					or function(diagnostic)
-						local icons = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+						local icons = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
 						for d, icon in pairs(icons) do
 							if diagnostic.severity == vim.diagnostic.severity[d:upper()] then
 								return icon
