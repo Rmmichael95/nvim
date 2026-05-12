@@ -41,7 +41,7 @@ vim.filetype.add({
 		mmark = "markdown",
 		r = "R",
 		rs = "rust",
-		perl = "perl",
+		pl = "perl",
 		py = "python",
 		wl = "mma",
 		wls = "mma",

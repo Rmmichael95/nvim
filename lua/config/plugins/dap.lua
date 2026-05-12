@@ -151,8 +151,7 @@ return {
 
 			dap.adapters.perl = {
 				type = "executable",
-				command = vim.env.MASON .. "/bin/perl-debug-adapter",
-				-- command = "/home/ryanm/.local/share/nvim/mason/bin/perl-debug-adapter",
+				command = vim.fn.stdpath("data") .. "/mason/bin/perl-debug-adapter",
 				args = {},
 			}
 
