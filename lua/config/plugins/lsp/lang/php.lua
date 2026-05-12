@@ -5,20 +5,14 @@ lsp.setup("intelephense", {
 	settings = {
 		intelephense = {
 			stubs = {
-				"amqp",
+				-- Core PHP (Linux/web relevant only)
 				"apache",
-				"apcu",
 				"bcmath",
-				"bz2",
 				"calendar",
-				"com_dotnet",
 				"Core",
-				"couchbase",
-				"crypto",
 				"ctype",
 				"curl",
 				"date",
-				"dba",
 				"dom",
 				"ds",
 				"exif",
@@ -29,31 +23,28 @@ lsp.setup("intelephense", {
 				"ftp",
 				"gd",
 				"gettext",
+				"gmagick",
 				"gmp",
 				"gnupg",
-				"grpc",
 				"hash",
 				"http",
 				"iconv",
 				"imagick",
 				"imap",
+				"igbinary",
 				"intl",
 				"json",
 				"ldap",
-				"libsodium",
 				"libxml",
+				"mailparse",
 				"mbstring",
 				"memcache",
 				"memcached",
 				"meta",
-				"mongodb",
 				"msgpack",
 				"mysqli",
 				"oauth",
-				"oci8",
-				"odbc",
 				"openssl",
-				"parallel",
 				"pcntl",
 				"pcre",
 				"PDO",
@@ -63,25 +54,23 @@ lsp.setup("intelephense", {
 				"pgsql",
 				"Phar",
 				"posix",
+				"rdkafka",
 				"redis",
 				"Reflection",
 				"regex",
 				"session",
 				"SimpleXML",
-				"snmp",
 				"soap",
 				"sockets",
 				"sodium",
+				"solr",
 				"SPL",
 				"sqlite3",
-				"sqlsrv",
 				"ssh2",
 				"standard",
-				"sysvmsg",
-				"sysvsem",
-				"sysvshm",
 				"tidy",
 				"tokenizer",
+				"xhprof",
 				"xml",
 				"xmlreader",
 				"xmlwriter",
@@ -89,8 +78,7 @@ lsp.setup("intelephense", {
 				"yaml",
 				"zip",
 				"zlib",
-				"zmq",
-				-- WordPress stubs
+				-- WordPress ecosystem
 				"wordpress",
 				"woocommerce",
 				"acf-pro",
@@ -98,6 +86,8 @@ lsp.setup("intelephense", {
 				"wp-cli",
 				"genesis",
 				"polylang",
+				"xdebug",
+				"Zend OPcache",
 			},
 			environment = {
 				includePaths = {
@@ -105,10 +95,34 @@ lsp.setup("intelephense", {
 					"~/.config/composer/vendor/wpsyntex/",
 				},
 			},
-			files = { maxSize = 5000000 },
+			diagnostics = {
+				undefinedSymbols = false, -- WP hooks register symbols dynamically
+				undefinedFunctions = false, -- do_action, apply_filters callbacks
+				undefinedConstants = false, -- WP_DEBUG, ABSPATH, etc.
+				undefinedClassConstants = false,
+				undefinedTypes = false,
+				undefinedVariables = true, -- keep this one
+				unusedSymbols = false, -- WP often passes args you don't use
+			},
+			completion = {
+				insertUseDeclaration = true,
+				fullyQualifyGlobalConstantsAndFunctions = false,
+				triggerParameterHints = true,
+				maxItems = 100,
+			},
+			format = {
+				braces = "wordpress", -- WP coding standard uses Allman brace style
+			},
+			files = { maxSize = 8000000 },
 		},
 	},
 })
 
--- phpactor: alternative PHP LSP (disabled by default, enable per project)
--- lsp.setup("phpactor")
+-- In php.lua, ADD:
+lsp.setup("phpactor", {
+	filetypes = { "php" },
+	init_options = {
+		["language_server_phpstan.enabled"] = false,
+		["language_server_psalm.enabled"] = false,
+	},
+})

@@ -17,11 +17,22 @@ lsp.setup("html", {
 })
 
 -- Emmet
-lsp.setup("emmet-language-server")
--- lsp.setup("emmet_ls", {  -- legacy fallback if needed
---   filetypes = { "html", "typescriptreact", "javascriptreact", "css", "sass", "scss", "less", "svelte" },
---   init_options = { html = { options = { ["bem.enabled"] = true } } },
--- })
+lsp.setup("emmet-language-server", {
+	filetypes = {
+		"html",
+		"css",
+		"scss",
+		"sass",
+		"less",
+		"javascript",
+		"javascriptreact",
+		"typescript",
+		"typescriptreact",
+		"php",
+		"svelte",
+		"vue",
+	},
+})
 
 -- Tailwind CSS (React + utility function class detection)
 lsp.setup("tailwindcss", {

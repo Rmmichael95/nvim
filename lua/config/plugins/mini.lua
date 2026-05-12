@@ -1,4 +1,5 @@
 return {
+	-- ── Highlight patterns (TODO/FIXME/HACK/NOTE + hex colors) ──────────────
 	{
 		"echasnovski/mini.hipatterns",
 		event = "BufReadPre",
@@ -6,24 +7,44 @@ return {
 			local hipatterns = require("mini.hipatterns")
 			hipatterns.setup({
 				highlighters = {
-					-- Highlight standalone 'FIXME', 'HACK', 'TODO', 'NOTE'
 					fixme = { pattern = "%f[%w]()FIXME()%f[%W]", group = "MiniHipatternsFixme" },
 					hack = { pattern = "%f[%w]()HACK()%f[%W]", group = "MiniHipatternsHack" },
 					todo = { pattern = "%f[%w]()TODO()%f[%W]", group = "MiniHipatternsTodo" },
 					note = { pattern = "%f[%w]()NOTE()%f[%W]", group = "MiniHipatternsNote" },
-					-- Highlight hex color strings (`#rrggbb`) using that color
 					hex_color = hipatterns.gen_highlighter.hex_color(),
 				},
 			})
 		end,
 	},
+
+	-- ── Trailing whitespace highlighting + trim keymap ───────────────────────
 	{
 		"echasnovski/mini.trailspace",
 		event = "BufReadPre",
 		opts = {
 			only_in_normal_buffers = true,
 		},
+		keys = {
+			{
+				"<leader>W",
+				function()
+					require("mini.trailspace").trim()
+				end,
+				desc = "Trim trailing whitespace",
+			},
+			{
+				"<leader>WL",
+				function()
+					require("mini.trailspace").trim_last_lines()
+				end,
+				desc = "Trim trailing empty lines",
+			},
+		},
 	},
+
+	-- ── Context-aware commentstring (needed for JSX, PHP, etc.) ─────────────
+	-- Provides correct comment syntax in mixed-language files.
+	-- enable_autocmd = false because mini.comment calls it manually.
 	{
 		"JoosepAlviste/nvim-ts-context-commentstring",
 		lazy = true,
@@ -31,10 +52,15 @@ return {
 			enable_autocmd = false,
 		},
 	},
+
+	-- ── Commenting with treesitter context awareness ─────────────────────────
 	{
 		"echasnovski/mini.comment",
 		version = "*",
-		lazy = true,
+		-- VeryLazy lets mini.comment register its own gc/gcc/etc. mappings at startup.
+		-- Do NOT add a keys = {} table here — mini.comment owns those mappings
+		-- via opts.mappings and calling its internal API directly causes errors.
+		event = "VeryLazy",
 		dependencies = {
 			"JoosepAlviste/nvim-ts-context-commentstring",
 		},
@@ -44,133 +70,110 @@ return {
 					return require("ts_context_commentstring").calculate_commentstring() or vim.bo.commentstring
 				end,
 			},
-		},
-		keys = {
-			{
-				"gc",
-				function()
-					require("mini.comment").comment()
-				end,
-				desc = "Toggle comment w/TS context",
-			},
-			{
-				"gc",
-				function()
-					require("mini.comment").textobjext()
-				end,
-				desc = "Textobjextq comment w/TS context",
-			},
-			{
-				"gcc",
-				function()
-					require("mini.comment").comment_line()
-				end,
-				desc = "Comment line w/TS context",
-			},
-			{
-				"gcc",
-				function()
-					require("mini.comment").comment_visual()
-				end,
-				desc = "Comment motion w/TS context",
+			mappings = {
+				-- These are mini.comment's built-in mapping names — do not duplicate
+				-- them in a keys = {} block or you will get conflicting handlers.
+				comment = "gc",
+				comment_line = "gcc",
+				comment_visual = "gc",
+				textobject = "gc",
 			},
 		},
 	},
+
+	-- ── Icons (Nerd Fonts v3, mocks nvim-web-devicons for plugin compat) ─────
 	{
 		"echasnovski/mini.icons",
 		lazy = true,
 		opts = {
 			file = {
 				[".keep"] = { glyph = "󰊢", hl = "MiniIconsGrey" },
-				["devcontainer.json"] = { glyph = "", hl = "MiniIconsAzure" },
+				["devcontainer.json"] = { glyph = "", hl = "MiniIconsAzure" },
 			},
 			filetype = {
-				dotenv = { glyph = "", hl = "MiniIconsYellow" },
+				dotenv = { glyph = "", hl = "MiniIconsYellow" },
+			},
+			-- neotest state icons — pulled via MiniIcons.get("lsp", "neotest_*")
+			-- in neotest.lua. Uses catppuccin-themed diagnostic highlights.
+			lsp = {
+				neotest_passed = { glyph = "", hl = "DiagnosticOk" },
+				neotest_failed = { glyph = "", hl = "DiagnosticError" },
+				neotest_running = { glyph = "", hl = "DiagnosticWarn" },
+				neotest_skipped = { glyph = "", hl = "DiagnosticHint" },
+				neotest_unknown = { glyph = "", hl = "DiagnosticInfo" },
+				neotest_watching = { glyph = "󰈈", hl = "DiagnosticInfo" },
 			},
 		},
 		init = function()
+			-- Make mini.icons respond to require("nvim-web-devicons") calls
+			-- so plugins that depend on it work without installing it separately.
 			package.preload["nvim-web-devicons"] = function()
 				require("mini.icons").mock_nvim_web_devicons()
 				return package.loaded["nvim-web-devicons"]
 			end
 		end,
 		config = function(_, opts)
-			-- Apply the tweak to LSP kind names to include icons
-			require("mini.icons").tweak_lsp_kind("replace") -- "prepend" or "append" or "replace"
+			-- FIX: opts MUST be passed to setup() or all custom entries are ignored.
+			-- Previously this function only called tweak_lsp_kind, so the file,
+			-- filetype, and lsp overrides in opts were silently discarded.
+			require("mini.icons").setup(opts)
+			-- Prepend icons to LSP completion kind labels (Array, Function, etc.)
+			require("mini.icons").tweak_lsp_kind("replace")
 		end,
 	},
+
+	-- ── Auto pairs ───────────────────────────────────────────────────────────
 	{
 		"echasnovski/mini.pairs",
 		version = "*",
+		event = "InsertEnter", -- only needed in insert mode
 		opts = {
-			-- In which modes mappings from this `config` should be created
 			modes = { insert = true, command = false, terminal = false },
-
-			-- Global mappings. Each right hand side should be a pair information, a
-			-- table with at least these fields (see more in |MiniPairs.map|):
-			-- - <action> - one of 'open', 'close', 'closeopen'.
-			-- - <pair> - two character string for pair to be used.
-			-- By default pair is not inserted after `\`, quotes are not recognized by
-			-- `<CR>`, `'` does not insert pair after a letter.
-			-- Only parts of tables can be tweaked (others will use these defaults).
 			mappings = {
 				["("] = { action = "open", pair = "()", neigh_pattern = "[^\\]." },
 				["["] = { action = "open", pair = "[]", neigh_pattern = "[^\\]." },
 				["{"] = { action = "open", pair = "{}", neigh_pattern = "[^\\]." },
-
 				[")"] = { action = "close", pair = "()", neigh_pattern = "[^\\]." },
 				["]"] = { action = "close", pair = "[]", neigh_pattern = "[^\\]." },
 				["}"] = { action = "close", pair = "{}", neigh_pattern = "[^\\]." },
-
 				['"'] = { action = "closeopen", pair = '""', neigh_pattern = "[^\\].", register = { cr = false } },
 				["'"] = { action = "closeopen", pair = "''", neigh_pattern = "[^%a\\].", register = { cr = false } },
 				["`"] = { action = "closeopen", pair = "``", neigh_pattern = "[^\\].", register = { cr = false } },
 			},
 		},
 	},
+
+	-- ── Surround operations (sa/sd/sc/sf/sF/sh/sn) ──────────────────────────
 	{
 		"echasnovski/mini.surround",
 		version = "*",
-		recommended = true,
+		-- FIX: removed `recommended = true` — not a valid lazy.nvim spec field
+		keys = {
+			{ "sa", desc = "Add surrounding" },
+			{ "sd", desc = "Delete surrounding" },
+			{ "sc", desc = "Replace surrounding" },
+			{ "sf", desc = "Find surrounding (right)" },
+			{ "sF", desc = "Find surrounding (left)" },
+			{ "sh", desc = "Highlight surrounding" },
+			{ "sn", desc = "Update n_lines" },
+		},
 		opts = {
-			-- Add custom surroundings to be used on top of builtin ones. For more
-			-- information with examples, see `:h MiniSurround.config`.
 			custom_surroundings = nil,
-
-			-- Duration (in ms) of highlight when calling `MiniSurround.highlight()`
 			highlight_duration = 500,
-
-			-- Module mappings. Use `''` (empty string) to disable one.
 			mappings = {
-				add = "sa", -- Add surrounding in Normal and Visual modes
-				delete = "sd", -- Delete surrounding
-				find = "sf", -- Find surrounding (to the right)
-				find_left = "sF", -- Find surrounding (to the left)
-				highlight = "sh", -- Highlight surrounding
-				replace = "sc", -- Replace surrounding
-				update_n_lines = "sn", -- Update `n_lines`
-
-				suffix_last = "l", -- Suffix to search with "prev" method
-				suffix_next = "n", -- Suffix to search with "next" method
+				add = "sa",
+				delete = "sd",
+				find = "sf",
+				find_left = "sF",
+				highlight = "sh",
+				replace = "sc",
+				update_n_lines = "sn",
+				suffix_last = "l",
+				suffix_next = "n",
 			},
-
-			-- Number of lines within which surrounding is searched
 			n_lines = 20,
-
-			-- Whether to respect selection type:
-			-- - Place surroundings on separate lines in linewise mode.
-			-- - Place surroundings on each line in blockwise mode.
 			respect_selection_type = false,
-
-			-- How to search for surrounding (first inside current line, then inside
-			-- neighborhood). One of 'cover', 'cover_or_next', 'cover_or_prev',
-			-- 'cover_or_nearest', 'next', 'prev', 'nearest'. For more details,
-			-- see `:h MiniSurround.config`.
 			search_method = "cover",
-
-			-- Whether to disable showing non-error feedback
-			-- This also affects (purely informational) helper messages shown after
-			-- idle time if user input is required.
 			silent = false,
 		},
 	},
