@@ -85,6 +85,7 @@ o.smartcase = true -- smart search case-sensativity
 o.modeline = false -- the modeline is a well-known security risk
 o.signcolumn = "yes"
 
+o.winborder = "rounded"
 o.inccommand = "nosplit" -- preview incremental substitute
 o.jumpoptions = "view"
 o.winblend = 0
