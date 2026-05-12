@@ -111,7 +111,7 @@ lsp.setup("intelephense", {
 				maxItems = 100,
 			},
 			format = {
-				braces = "wordpress", -- WP coding standard uses Allman brace style
+				braces = "Allman", -- WP coding standard uses Allman brace style
 			},
 			files = { maxSize = 8000000 },
 		},
@@ -121,6 +121,11 @@ lsp.setup("intelephense", {
 -- In php.lua, ADD:
 lsp.setup("phpactor", {
 	filetypes = { "php" },
+	handlers = {
+		["workspace/configuration"] = function()
+			return {}
+		end,
+	},
 	init_options = {
 		["language_server_phpstan.enabled"] = false,
 		["language_server_psalm.enabled"] = false,

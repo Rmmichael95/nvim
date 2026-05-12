@@ -1,6 +1,8 @@
 local home = os.getenv("HOME")
 local aucmd = vim.api.nvim_create_autocmd
 
+vim.lsp.log.set_level(vim.log.levels.WARN)
+
 -- auto reload vimrc when editing it
 aucmd("bufwritepost", {
 	pattern = {
