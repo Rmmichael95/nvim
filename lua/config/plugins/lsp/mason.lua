@@ -19,6 +19,7 @@ return {
 			"r-languageserver", -- r_lang.lua
 			"rust-analyzer", -- rust.lua
 			"vim-language-server", -- system.lua
+			"marksman", -- markdown LSP (wiki-links, outline, go-to-def)
 			"yaml-language-server", -- system.lua
 			"zls", -- system.lua
 			"systemd-lsp", -- system.lua
@@ -60,6 +61,8 @@ return {
 			"phpcs",
 			"pylint",
 			"eslint_d",
+			"markdownlint-cli2", -- markdown linter + fixer
+			"markdown-toc", -- auto-generates/updates <!-- toc --> tables of contents
 		},
 	},
 	config = function(_, opts)

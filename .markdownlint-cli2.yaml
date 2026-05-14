@@ -1,0 +1,34 @@
+# .markdownlint-cli2.yaml
+# Drop this at the repo root OR at ~/.markdownlint-cli2.yaml for global defaults.
+# markdownlint-cli2 walks up from the file to find the nearest config.
+
+config:
+  # ── Style ────────────────────────────────────────────────────────────────
+  MD013: false # line-length: let prettier handle wrapping
+  MD024: false # duplicate headings: allowed in different sections
+  MD033: false # inline HTML: allowed (useful for <details>, badges)
+  MD041: false # first line must be h1: too strict for notes/snippets
+
+  # ── Lists ────────────────────────────────────────────────────────────────
+  MD004: # unordered list style
+    style: "dash" # enforce -  (prettier already does this)
+  MD007: # list indentation
+    indent: 2
+
+  # ── Code blocks ──────────────────────────────────────────────────────────
+  MD046: # code block style
+    style: "fenced" # always use ``` not indented
+
+  # ── Headings ─────────────────────────────────────────────────────────────
+  MD003: # heading style
+    style: "atx" # enforce # not underline style
+
+  # ── Links ────────────────────────────────────────────────────────────────
+  MD042: true # no empty links
+
+# Files/globs to ignore
+ignores:
+  - "node_modules/**"
+  - ".git/**"
+  - "vendor/**"
+  - "CHANGELOG.md" # auto-generated, skip linting

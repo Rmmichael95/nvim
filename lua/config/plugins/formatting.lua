@@ -29,6 +29,25 @@ return {
 					command = "~/.config/composer/vendor/bin/phpcbf",
 					args = { "-q", "--standard=WordPress", "--report-json", "$FILENAME" },
 				},
+				prettier_md = {
+					command = "prettier",
+					args = { "--prose-wrap", "preserve", "--parser", "markdown" },
+					stdin = true,
+				},
+				prettier_mdx = {
+					command = "prettier",
+					args = { "--prose-wrap", "preserve", "--parser", "mdx" },
+					stdin = true,
+				},
+				-- mdsf: formats code blocks embedded inside markdown using their
+				-- own language formatters (prettier for js/ts, stylua for lua, etc.)
+				-- Requires: cargo install mdsf
+				-- Config:   mdsf.json at repo root or ~/.config/mdsf/mdsf.json
+				mdsf = {
+					command = "mdsf",
+					args = { "format", "--stdin" },
+					stdin = true,
+				},
 				["markdown-toc"] = {
 					condition = function(_, ctx)
 						for _, line in ipairs(vim.api.nvim_buf_get_lines(ctx.buf, 0, -1, false)) do
@@ -36,14 +55,6 @@ return {
 								return true
 							end
 						end
-					end,
-				},
-				["markdownlint-cli2"] = {
-					condition = function(_, ctx)
-						local diag = vim.tbl_filter(function(d)
-							return d.source == "markdownlint"
-						end, vim.diagnostic.get(ctx.buf))
-						return #diag > 0
 					end,
 				},
 				csharpier = {
@@ -69,8 +80,8 @@ return {
 				html = { "prettier" },
 				json = { "prettier" },
 				yaml = { "prettier" },
-				markdown = { "prettier", "markdownlint-cli2", "markdown-toc" },
-				["markdown.mdx"] = { "prettier", "markdownlint-cli2", "markdown-toc" },
+				markdown = { "prettier_md", "mdsf", "markdown-toc" },
+				["markdown.mdx"] = { "prettier_mdx", "mdsf", "markdown-toc" },
 				graphql = { "prettier" },
 				liquid = { "prettier" },
 				tex = { "latexindent" },
