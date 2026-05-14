@@ -1,0 +1,4 @@
+[core]
+# File extensions marksman treats as markdown in this workspace.
+# Add "mdx" if you use MDX in this project.
+markdown.extensions = ["md", "mdx", "markdown"]
