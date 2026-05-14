@@ -77,23 +77,35 @@ aucmd({ "BufEnter", "BufNewFile", "BufRead" }, {
 
 -- In your Neovim configuration (e.g., init.lua)
 local function load_document_skeleton()
-	local current_file = vim.fn.expand("%:p")
-	local documents_dir = "~/documents/.bc/batcave/Notes/" -- Adjust this path as needed
+	if not (vim.fn.line("$") == 1 and vim.fn.getline(1) == "") then
+		return
+	end
 
-	-- Check if the file is in the documents directory and if the buffer is empty
-	if current_file:find(documents_dir, 1, true) and (vim.fn.line("$") == 1 and vim.fn.getline(1) == "") then
-		local snippets = require("luasnip").get_snippets()[vim.bo.ft] -- Get snippets for current filetype
-		if snippets then
-			for _, snip in ipairs(snippets) do
-				if snip.name == "_skel" then -- Check for your skeleton snippet
-					require("luasnip").snip_expand(snip)
-					return
-				end
-			end
+	local ok, ls = pcall(require, "luasnip")
+	if not ok then
+		return
+	end
+
+	-- ft is set by now (vim.schedule ran after filetype detection)
+	-- fall back to "markdown" in case detection is still pending
+	local ft = vim.bo.ft ~= "" and vim.bo.ft or "markdown"
+	local snippets = ls.get_snippets(ft)
+	if not snippets then
+		return
+	end
+
+	for _, snip in ipairs(snippets) do
+		if snip.name == "_skel" then
+			vim.cmd("startinsert")
+			ls.snip_expand(snip)
+			return
 		end
 	end
 end
 
 aucmd("BufNewFile", {
-	callback = load_document_skeleton,
+	pattern = "*.md", -- scope at event level, no dir check needed
+	callback = function()
+		vim.schedule(load_document_skeleton) -- defer past filetype detection
+	end,
 })

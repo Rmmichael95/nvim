@@ -26,7 +26,7 @@ return {
 					-- command = "phpcbf",
 					-- command = vim.fn.stdpath("data") .. "/mason/bin/phpcbf",
 					--command = vim.fn.getcwd() .. "/vendor/bin/phpcbf",
-					command = "~/.config/composer/vendor/bin/phpcbf",
+					command = vim.fn.expand("~/.config/composer/vendor/bin/phpcbf"),
 					args = { "-q", "--standard=WordPress", "--report-json", "$FILENAME" },
 				},
 				prettier_md = {
@@ -45,7 +45,7 @@ return {
 				-- Config:   mdsf.json at repo root or ~/.config/mdsf/mdsf.json
 				mdsf = {
 					command = "mdsf",
-					args = { "format", "--stdin" },
+					args = { "format", "--stdin", "--config", vim.fn.expand("~/.config/mdsf/mdsf.json") },
 					stdin = true,
 				},
 				["markdown-toc"] = {
