@@ -158,3 +158,9 @@ map.set(
 	{ noremap = true, desc = "Search notes for selected word" }
 )
 map.set("n", "<leader>[", ":Nls ", { noremap = true, desc = "Search notes for word" })
+
+-- keymaps.lua: add these two lines
+map.set({ "n", "i" }, "<leader><leader>", "<Esc>:keepp /<++><CR>ca<", { desc = "Jump to placeholder <++>" })
+map.set("n", "<leader>Z", function()
+	Snacks.zen()
+end, { desc = "Zen mode" })
