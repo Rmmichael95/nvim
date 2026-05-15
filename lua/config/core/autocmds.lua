@@ -109,3 +109,26 @@ aucmd("BufNewFile", {
 		vim.schedule(load_document_skeleton) -- defer past filetype detection
 	end,
 })
+
+-- ── autocmds.lua patch ──────────────────────────────────────────────────────
+--
+-- Add these lines directly after the existing markdown BufNewFile block:
+--
+--   aucmd("BufNewFile", {
+--       pattern = "*.md",
+--       callback = function()
+--           vim.schedule(load_document_skeleton)
+--       end,
+--   })
+--
+-- ↓↓↓ INSERT BELOW THAT BLOCK ↓↓↓
+
+aucmd("BufNewFile", {
+	-- .hpp / .hh / .hxx → filetype=cpp → _skel expands #pragma once
+	-- .h                 → filetype=c   → _skel expands traditional guard
+	-- (filetype for empty .h defaults to "c" per your ftdetect heuristic)
+	pattern = { "*.h", "*.hpp", "*.hh", "*.hxx" },
+	callback = function()
+		vim.schedule(load_document_skeleton) -- reuses the existing local function
+	end,
+})
