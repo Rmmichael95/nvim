@@ -152,6 +152,55 @@ return {
 		keys = {
 			-- Notes
 			{
+				"<leader>ai",
+				function()
+					vim.ui.input({ prompt = "💡 AI Deep Search: " }, function(input)
+						if not input or input == "" then
+							return
+						end
+
+						-- 1. Safely escape the input and build the exact command
+						local bin_path = vim.fn.expand("~/.local/bin/myBin/npu/npu-search")
+						local cmd = bin_path .. " " .. vim.fn.shellescape(input)
+
+						-- 2. Execute natively in Neovim, bypassing any picker arguments
+						local output = vim.fn.systemlist(cmd)
+						local items = {}
+
+						-- 3. Parse the clean file:line:[header] output
+						for _, line in ipairs(output) do
+							local parts = vim.split(line, ":")
+							if #parts >= 2 then
+								local file_path = parts[1]
+								local line_num = tonumber(parts[2])
+								-- Extract the header text and the file name for a clean UI preview
+								local preview_text = table.concat(parts, ":", 3)
+								local file_name = string.match(file_path, "[^/]+$")
+
+								table.insert(items, {
+									text = file_name .. preview_text, -- The text you filter by in the UI
+									file = file_path, -- The absolute path to open
+									pos = { line_num, 0 }, -- The exact row to jump to
+								})
+							end
+						end
+
+						if #items == 0 then
+							vim.notify("No NPU matches found above the similarity threshold.", vim.log.levels.WARN)
+							return
+						end
+
+						-- 4. Pass the raw items to a clean, generic picker
+						Snacks.picker({
+							title = "NPU Deep Search: " .. input,
+							items = items,
+							layout = { preset = "vertical" },
+						})
+					end)
+				end,
+				desc = "NPU Granular Section Search",
+			},
+			{
 				"'nl",
 				function()
 					Snacks.picker.grep({

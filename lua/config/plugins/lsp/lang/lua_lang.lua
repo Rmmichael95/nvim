@@ -13,6 +13,7 @@ lsp.setup("lua_ls", {
 			},
 			workspace = {
 				checkThirdParty = false,
+				library = { "/usr/share/hypr/stubs" },
 			},
 		},
 	},

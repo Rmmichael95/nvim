@@ -2,7 +2,6 @@ return {
 	"mason-org/mason.nvim",
 	dependencies = {
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
-		-- ADD: bridges Mason → vim.lsp.enable() after install
 		"mason-org/mason-lspconfig.nvim",
 	},
 	cmd = "Mason",
@@ -13,6 +12,7 @@ return {
 			-- LSP — core
 			"bash-language-server", -- bash.lua
 			"clangd", -- c_cpp.lua
+			"cmake-language-server", -- CMakeLists.txt — pairs with clangd for C/C++ projects
 			"json-lsp", -- json.lua
 			"lua-language-server", -- lua_lang.lua
 			"perlnavigator", -- perl.lua

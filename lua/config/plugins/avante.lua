@@ -12,9 +12,26 @@ return {
 		-- add any opts here
 		-- this file can contain specific instructions for your project
 		instructions_file = "avante.md",
-		-- for example
-		provider = "openai",
+
+		-- Set the default provider to the local NPU
+		provider = "flm",
+
 		providers = {
+			-- New llama.cpp GPU Configuration
+			llamacpp = {
+				__inherited_from = "openai",
+				api_key_name = "FLM_API_KEY", -- We reuse your FLM key env var to bypass Avante's nil-key check; the local server ignores it anyway.
+				endpoint = "http://127.0.0.1:8080/v1",
+				model = "qwen-2.5-7b", -- llama-server ignores this string when only running one model, but Avante requires it.
+			},
+			-- FastFlowLM NPU Configuration
+			flm = {
+				__inherited_from = "openai",
+				api_key_name = "FLM_API_KEY",
+				endpoint = "http://localhost:52625/v1",
+				--model = "llama3.2:1b",
+				model = "deepseek-r1:8b",
+			},
 			claude = {
 				endpoint = "https://api.anthropic.com",
 				model = "claude-sonnet-4-20250514",

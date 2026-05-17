@@ -35,6 +35,7 @@
   "mini.pairs": { "branch": "main", "commit": "d5a29b6254dad07757832db505ea5aeab9aad43a" },
   "mini.surround": { "branch": "main", "commit": "88c52297ed3e69ecf9f8652837888ecc727a28ee" },
   "mini.trailspace": { "branch": "main", "commit": "b362246495d18c29b4545a8f1c47f627f8011b7c" },
+  "minuet-ai.nvim": { "branch": "main", "commit": "449cf6ac16fbc5529f834c10e5fc1be7c75c3ffb" },
   "neogen": { "branch": "main", "commit": "23e7e9f883d01289ebd90e98025acc860ea26366" },
   "neomutt.vim": { "branch": "main", "commit": "2a4f2870560f20614dd22735a25670c7afe3d479" },
   "neotest": { "branch": "master", "commit": "ad991822b7076b1d940b33a9d6d0d30416d5df81" },

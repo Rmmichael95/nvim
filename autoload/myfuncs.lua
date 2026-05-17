@@ -24,4 +24,3 @@ function! myfuncs#OpenAll() abort
   endif
 endfunction
 ]])
-

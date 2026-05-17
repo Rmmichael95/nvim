@@ -164,3 +164,12 @@ map.set({ "n", "i" }, "<leader><leader>", "<Esc>:keepp /<++><CR>ca<", { desc = "
 map.set("n", "<leader>Z", function()
 	Snacks.zen()
 end, { desc = "Zen mode" })
+
+-- Trigger AI Semantic Search with prompt
+vim.keymap.set("n", "<leader>sa", function()
+	vim.ui.input({ prompt = "AI Concept Search: " }, function(input)
+		if input and input ~= "" then
+			vim.cmd("Nai " .. input)
+		end
+	end)
+end, { desc = "AI Semantic Note Search" })
