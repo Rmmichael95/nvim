@@ -14,34 +14,145 @@ return {
 		},
 		version = "*",
 		opts = {
-			-- [Keep your existing keymap, snippets, appearance, and completion settings as they are]
-			-- ...
+			keymap = {
+				["<c-x>"] = { "show", "show_documentation", "hide_documentation" },
+				["<c-e>"] = { "cancel", "fallback" },
+				["<tab>"] = { "snippet_forward", "accept", "fallback" },
+				["<c-l>"] = { "select_and_accept", "fallback" },
+				["<c-k>"] = { "select_prev", "fallback" },
+				["<up>"] = { "select_prev", "fallback" },
+				["<c-j>"] = { "select_next", "fallback" },
+				["<down>"] = { "select_next", "fallback" },
+			},
 
+			snippets = { preset = "luasnip" },
+
+			appearance = {
+				use_nvim_cmp_as_default = true,
+				nerd_font_variant = "mono",
+			},
+
+			completion = {
+				keyword = { range = "full" },
+				accept = {
+					auto_brackets = { enabled = true },
+				},
+				menu = {
+					draw = {
+						padding = { 0, 1 },
+						components = {
+							kind_icon = {
+								text = function(ctx)
+									return " " .. ctx.kind_icon .. ctx.icon_gap .. " "
+								end,
+								highlight = function(ctx)
+									local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+									return hl
+								end,
+							},
+							kind = {
+								highlight = function(ctx)
+									local _, hl, _ = require("mini.icons").get("lsp", ctx.kind)
+									return hl
+								end,
+							},
+						},
+						treesitter = { "lsp" },
+						columns = {
+							{ "label", "label_description", gap = 1 },
+							{ "kind_icon", "kind" },
+						},
+					},
+					border = "rounded",
+				},
+				documentation = {
+					auto_show = true,
+					auto_show_delay_ms = 200,
+					window = { border = "rounded" },
+				},
+				-- FIX 1: Force ghost text on natively instead of relying on an un-triggered global
+				ghost_text = {
+					enabled = true,
+				},
+			},
 			sources = {
-				-- REMOVED "avante" from the default array
-				default = { "lsp", "path", "snippets", "buffer", "minuet" },
+				-- ADDED: "ripgrep" is now active in the default loop
+				default = { "lsp", "path", "snippets", "buffer", "ripgrep", "minuet" },
 				per_filetype = {
-					sql = { "dadbod" },
-					-- ADDED: Isolate CodeCompanion so it only triggers in its own chat buffers
-					codecompanion = { "codecompanion" },
+					-- It's highly useful to keep buffer completions active inside SQL and Chat files
+					sql = { "dadbod", "buffer" },
+					codecompanion = { "codecompanion", "buffer" },
 				},
 				providers = {
-					lsp = { score_offset = 100 },
+					-- 1. TOP TIER: Code Intelligence & Paths
+					lsp = { name = "LSP", score_offset = 100 },
+					snippets = { name = "Snippets", score_offset = 90 },
+					path = { name = "Path", score_offset = 80 },
+
+					-- 2. MID TIER: Current File Context
+					buffer = {
+						name = "Buffer",
+						score_offset = 10,
+						-- OPTIMIZATION: Stop scanning all open tabs. Only scan the active file.
+						-- Your ripgrep provider will handle finding strings in other files.
+						opts = {
+							get_bufnrs = function()
+								return { vim.api.nvim_get_current_buf() }
+							end,
+						},
+					},
+
+					-- 3. BACKGROUND TIER: Local AI
 					minuet = {
 						name = "minuet",
 						module = "minuet.blink",
 						score_offset = -10,
 						async = true,
 					},
-					-- REMOVED: the avante provider block
-					-- ADDED: CodeCompanion provider
+
+					-- 4. BOTTOM TIER: Project Search
+					ripgrep = {
+						module = "blink-ripgrep",
+						name = "Ripgrep",
+						score_offset = -20,
+						min_keyword_length = 4,
+						opts = {
+							backend = {
+								use = "gitgrep-or-ripgrep",
+								customize_icon_highlight = true,
+								ripgrep = {
+									context_size = 0,
+									max_filesize = "250K",
+									search_casing = "--smart-case",
+									additional_rg_options = {
+										"--max-columns=150",
+										"-g",
+										"!*.lock",
+										"-g",
+										"!*-lock.json",
+										"-g",
+										"!*.min.*",
+									},
+									ignore_paths = {
+										"node_modules",
+										".git",
+										"vendor",
+										"build",
+										"dist",
+									},
+								},
+							},
+						},
+					},
+
+					-- Isolated Filetype Providers
 					codecompanion = {
 						name = "CodeCompanion",
 						module = "codecompanion.providers.completion.blink",
 					},
-					dadbod = { module = "vim_dadbod_completion.blink" },
-					ripgrep = {
-						-- [Keep your existing ripgrep opts]
+					dadbod = {
+						name = "Dadbod",
+						module = "vim_dadbod_completion.blink",
 					},
 				},
 			},
