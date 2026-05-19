@@ -1,5 +1,4 @@
 -- Filename: filetype.lua
--- ~/.config/nvim/lua/config/core/filetype.lua  (required from init.lua)
 --
 -- Only declare what Neovim doesn't already know.
 -- Order of resolution:  extension → filename → pattern
