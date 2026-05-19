@@ -1,53 +1,21 @@
 -- Filename: filetype.lua
--- Last Change: 09 Nov 2024
-
--- lua file detection feature:
--- https://github.com/neovim/neovim/pull/16600#issuecomment-990409210
-
--- filetype.lua is sourced before filetype.vim so any filetypes defined in
--- filetype.lua will take precedence.
-
--- on my init.lua i make a require to this file, so then I can place
--- it on my ~/.config/nvim/lua/config/core/ folder
-
---vim.g.do_filetype_lua = 1
---vim.g.did_load_filetypes = 0
+-- ~/.config/nvim/lua/config/core/filetype.lua  (required from init.lua)
+--
+-- Only declare what Neovim doesn't already know.
+-- Order of resolution:  extension → filename → pattern
+--
+-- Ref: https://github.com/neovim/neovim/pull/16600
 
 vim.filetype.add({
+
+	-- ── Custom / non-default extensions ─────────────────────────────────────
 	extension = {
+		-- audio / video / image  ─ custom sentinels so ftplugins can handle them
 		mp3 = "audio",
 		flac = "audio",
 		wav = "audio",
 		ogg = "audio",
 		opus = "audio",
-		sh = "sh",
-		zsh = "zsh",
-		bash = "bash",
-		fish = "fish",
-		conf = "config",
-		pbrt = "config",
-		patch = "diff",
-		rej = "diff",
-		diff = "diff",
-		erl = "erl",
-		hs = "haskell",
-		html = "html",
-		png = "image",
-		jpg = "image",
-		jpeg = "image",
-		js = "javascript",
-		lua = "lua",
-		md = "markdown",
-		mmark = "markdown",
-		r = "R",
-		rs = "rust",
-		pl = "perl",
-		py = "python",
-		wl = "mma",
-		wls = "mma",
-		scss = "scss.css",
-		sass = "scss.css",
-		sql = "sql",
 		avi = "video",
 		wmv = "video",
 		flv = "video",
@@ -55,57 +23,96 @@ vim.filetype.add({
 		mkv = "video",
 		mov = "video",
 		mpg = "video",
-		vim = "vim",
-		zig = "zig",
-		c = "c",
-		cpp = "cpp",
-		cs = "cs",
-		tsx = "typescriptreact",
-		jsx = "javascriptreact",
+		png = "image",
+		jpg = "image",
+		jpeg = "image",
+
+		-- shell dialects  (Neovim maps .sh→sh, but not zsh/bash/fish explicitly)
+		zsh = "zsh",
+		bash = "bash",
+		fish = "fish",
+
+		-- config catch-all for dotfiles that use .conf / .pbrt
+		conf = "config",
+		pbrt = "config",
+
+		-- Wolfram Language
+		wl = "mma",
+		wls = "mma",
+
+		-- SCSS/Sass: compound filetype so both scss and css ftplugins fire
+		scss = "scss.css",
+		sass = "scss.css",
+
+		-- mmark is a variant of markdown not detected by default
+		mmark = "markdown",
+
+		-- ── Smart C/C++ header detection ─────────────────────────────────────
+		-- .h with STL-style #include <...> → cpp; otherwise → c
 		h = function(path, bufnr)
-			if vim.fn.search("\\C^#include <[^>.]\\+>$", "nw") ~= 0 then
+			if vim.fn.search("\\C^#include <[^>.][^>]*>$", "nw") ~= 0 then
 				return "cpp"
 			end
 			return "c"
 		end,
+
+		-- NOTE: the following are intentionally omitted because Neovim detects
+		-- them natively and overriding them here just adds maintenance burden:
+		--   lua, py, rs, c, cpp, html, js, ts, tsx, jsx, cs, vim, hs, pl,
+		--   r, sql, erl, diff, patch, rej, md, sh, zig
 	},
 
-	pattern = {
-		["^\\.(?:zsh(?:rc|env)?)$"] = "sh",
-		["*.*sh"] = "sh",
-		["*.md.html"] = "markdown",
-		[""] = "text",
-		-- [".*"] = {
-		--     function(path, bufnr)
-		--         local content = vim.api.nvim_buf_get_lines(bufnr, 0, 1, false)[1] or ''
-		--         if vim.regex([[^#!.*\\<mine\\>]]):match_str(content) ~= nil then
-		--             return 'mine'
-		--         elif vim.regex([[\\<drawing\\>]]):match_str(content) ~= nil then
-		--             return 'drawing'
-		--         end
-		--     end,
-		--     { priority = -math.huge },
-		-- },
-	},
-
+	-- ── Exact filename / path → filetype ─────────────────────────────────────
+	-- Keys here are matched as Lua patterns against the full absolute path.
+	-- Use literal strings for exact paths; use anchors (^/$) for patterns.
 	filename = {
-		["*mutt-*"] = "mail",
-		["TODO"] = "markdown",
-		["/tmp/calcurse/notes*"] = "markdown",
-		["~/calcurse*"] = "markdown",
 		[".git/config"] = "gitconfig",
+		["TODO"] = "markdown",
+
+		-- Zsh config files under ~/.config/zsh/
 		["~/.config/zsh/.zshrc"] = "zsh",
 		["~/.config/zsh/.zshenv"] = "zsh",
 		["~/.config/zsh/.zprofile"] = "zsh",
 		["~/.config/zsh/.zlogin"] = "zsh",
 		["~/.local/state/zsh/history"] = "zsh",
+
+		-- ~/.zshrc (legacy path) → plain sh
 		["~/.zshrc"] = "sh",
+
+		-- mutt config
 		["~/.config/mutt/muttrc"] = "muttrc",
+
+		-- README with no extension: check first line for '#' (markdown heading)
+		-- FIX: string.find(s, pattern) — args were reversed in previous version
 		["README$"] = function(path, bufnr)
-			if string.find("#", vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)) then
+			local first = vim.api.nvim_buf_get_lines(bufnr, 0, 1, true)[1] or ""
+			if first:find("^#") then
 				return "markdown"
 			end
-			-- no return means the filetype won't be set and to try the next method
+			-- returning nil lets Neovim try the next method
 		end,
+	},
+
+	-- ── Path patterns → filetype ──────────────────────────────────────────────
+	-- Keys are Lua patterns matched against the full absolute path.
+	-- Note: '*' in Lua is a quantifier (zero-or-more), NOT a shell glob.
+	-- Use '.*' for "any chars", '%.' for a literal dot.
+	pattern = {
+		-- dotfiles: .zshrc, .zshenv (when NOT under ~/.config/zsh/)
+		-- filename table handles the canonical XDG path; this catches the rest
+		["^%.zsh%(rc|env%)?$"] = "sh",
+
+		-- neomutt temp buffers  (was ["*mutt-*"] — that was a glob, not a pattern)
+		[".*/mutt%-.*"] = "mail",
+
+		-- calcurse notes
+		["/tmp/calcurse/notes.*"] = "markdown",
+		[vim.env.HOME .. "/calcurse.*"] = "markdown",
+
+		-- .md.html preview files
+		[".*%.md%.html$"] = "markdown",
+
+		-- nameless buffers (e.g. :enew) fall back to text
+		["^$"] = "text",
 	},
 })
