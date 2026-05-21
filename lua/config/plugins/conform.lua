@@ -71,6 +71,8 @@ return {
 				typescript = { "prettier" },
 				javascriptreact = { "prettier" },
 				typescriptreact = { "prettier" },
+				["javascript.jsx"] = { "prettier" },
+				["typescript.tsx"] = { "prettier" },
 				svelte = { "prettier" },
 				c = { "clang-format" },
 				cpp = { "clang-format" },

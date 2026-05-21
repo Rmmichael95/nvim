@@ -288,13 +288,18 @@ return {
 						processId = require("dap.utils").pick_process,
 						cwd = "${workspaceFolder}",
 						sourceMaps = true,
+						skipFiles = { "<node_internals>/**", "**/node_modules/**" },
+						resolveSourceMapLocations = {
+							"${workspaceFolder}/**",
+							"!**/node_modules/**",
+						},
 					},
 					{
 						type = "pwa-chrome",
 						request = "launch",
 						name = "Debug React in Chrome",
 						url = "http://localhost:3000",
-						webRoot = "${workspaceFolder}/src",
+						webRoot = "${workspaceFolder}",
 						sourceMaps = true,
 					},
 				})

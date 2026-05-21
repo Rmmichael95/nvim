@@ -106,6 +106,8 @@ return {
 				adapters = {
 					require("neotest-vstest"),
 					require("neotest-phpunit"),
+					require("neotest-vitest"),
+					require("neotest-jest"),
 				},
 				run = { enabled = true },
 				running = { concurrent = true },
