@@ -1,5 +1,3 @@
--- init.lua contains all of the initialization plugins for vim note;
--- This has to be sourced second since dein needs to run its scripts first.
 -- This contains misc startup settings for vim
 local g = vim.g -- global variable
 local o = vim.opt -- set options
@@ -49,7 +47,7 @@ o.shiftround = true -- rounds >> and << to the nearest shiftwidth multiple
 o.expandtab = true -- use spaces instead of tab characters
 o.showmatch = true -- brefiely highlight matching grouping symbols
 o.backspace = "indent,eol,start" -- allow unrestricted backspacing in insert mode
-o.scrolloff = 10 -- number of lines from edge until screen scroll
+o.scrolloff = 8 -- number of lines from edge until screen scroll
 o.smoothscroll = true -- scroll by screen lines, not file lines (great with wrap)
 
 o.mouse = "a" -- enable all mouse modes
@@ -85,7 +83,7 @@ o.hlsearch = false -- don't highlight for searching
 o.ignorecase = true -- ignore case for pattern matching
 o.smartcase = true -- smart search case-sensativity
 o.modeline = false -- the modeline is a well-known security risk
-o.signcolumn = "yes"
+o.signcolumn = "yes" -- never shift text when diagnostics appear
 o.linebreak = true -- wrap at word boundaries (not mid-word)
 
 o.jumpoptions = "view"
@@ -104,9 +102,10 @@ o.iskeyword:append("-") -- hiphenated oneword
 o.spelllang = { "en" }
 o.spelloptions:append("noplainbuffer")
 
+o.isfname:append("@-@") -- makes gf work on Rust/Go import paths like foo@v1.2
+
 -- diff
-o.diffopt = "filler,internal,closeoff,algorithm:histogram,context:5,linematch:60"
-o.diffopt:append("vertical")
+o.diffopt = "filler,internal,closeoff,algorithm:histogram,context:5,linematch:60,vertical"
 
 -- set colorscheme
 o.termguicolors = true -- enable 24bit colors in TUI, uses guibg/guifg
