@@ -3,7 +3,6 @@
 -- This contains misc startup settings for vim
 local g = vim.g -- global variable
 local o = vim.opt -- set options
-local cmd = vim.cmd -- vim command
 
 -- set system python3
 g.python3_host_prog = "/usr/bin/python3"
@@ -39,8 +38,12 @@ g.trouble_lualine = true
 -- global options
 o.autowrite = true -- Enable auto write
 o.completeopt = "menu,menuone,noselect,fuzzy"
+o.wildmode = "longest:full,full" -- smarter cmdline completion behavior
 o.conceallevel = 2 -- Hide * markup for bold and italic, but not markers with substitutions
 o.confirm = true -- Confirm to save changes before exiting modified buffer
+o.updatetime = 200 -- faster CursorHold (default is 4000ms — yours may be slow for diagnostics)
+o.cursorline = true -- highlight the current line
+o.shiftround = true -- rounds >> and << to the nearest shiftwidth multiple
 o.expandtab = true -- use spaces instead of tab characters
 o.showmatch = true -- brefiely highlight matching grouping symbols
 o.backspace = "indent,eol,start" -- allow unrestricted backspacing in insert mode
@@ -80,6 +83,7 @@ o.ignorecase = true -- ignore case for pattern matching
 o.smartcase = true -- smart search case-sensativity
 o.modeline = false -- the modeline is a well-known security risk
 o.signcolumn = "yes"
+o.linebreak = true -- wrap at word boundaries (not mid-word)
 
 o.jumpoptions = "view"
 o.winblend = 0
@@ -119,7 +123,7 @@ o.fillchars = {
 	foldclose = "",
 	foldsep = " ",
 	fold = "·", -- MIDDLE DOT (U+00B7, UTF-8: C2 B7)
-	diff = "╱",
+	diff = "╱", -- U+2571
 	vert = "┃", -- BOX DRAWINGS HEAVY VERTICAL (U+2503, UTF-8: E2 94 83)
 	eob = " ",
 }
