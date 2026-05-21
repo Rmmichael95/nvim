@@ -3,8 +3,6 @@ return {
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
-		-- Optional but highly recommended for better UI menus
-		"stevearc/dressing.nvim",
 	},
 	cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions" },
 	keys = {
