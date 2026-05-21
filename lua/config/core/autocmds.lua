@@ -20,6 +20,11 @@ aucmd("InsertEnter", {
 	command = "norm! zz",
 })
 
+-- smart cursorline
+local cline = vim.api.nvim_create_augroup("CursorLine", { clear = true })
+aucmd({ "WinLeave", "InsertEnter" }, { group = cline, pattern = "*", command = "set nocursorline" })
+aucmd({ "WinEnter", "InsertLeave" }, { group = cline, pattern = "*", command = "set cursorline" })
+
 -- toggle relative number off insert/on normal
 local numberToggle = vim.api.nvim_create_augroup("NumberToggle", { clear = true })
 aucmd({ "InsertLeave", "BufEnter", "BufRead" }, {
@@ -31,6 +36,33 @@ aucmd("InsertEnter", {
 	pattern = "*",
 	group = numberToggle,
 	command = "set nornu",
+})
+
+local trailing = vim.api.nvim_create_augroup("Trailing", { clear = true })
+aucmd("InsertEnter", {
+	group = trailing,
+	pattern = "*",
+	callback = function()
+		vim.opt.listchars:remove("trail")
+	end,
+})
+
+aucmd("InsertLeave", {
+	group = trailing,
+	pattern = "*",
+	callback = function()
+		vim.opt.listchars:append({ trail = "⌴" })
+	end,
+})
+
+local vcs_conflict = vim.api.nvim_create_augroup("VCSConflictMarkers", { clear = true })
+vim.api.nvim_create_autocmd("BufWinEnter", {
+	group = vcs_conflict,
+	pattern = "*",
+	desc = "Highlight VCS conflict markers",
+	callback = function()
+		vim.fn.matchadd("ErrorMsg", [[^\(<\|=\|>\)\{7\}\([^=].\+\)\?$]])
+	end,
 })
 
 -- open file with existing swp in readonly mode

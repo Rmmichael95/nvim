@@ -34,6 +34,22 @@ map.set(
 	{ desc = "Redraw / Clear hlsearch / Diff Update" }
 )
 
+-- J normally jerks your cursor rightward
+map.set("n", "J", "mzJ`z", { desc = "Join lines, preserve cursor" })
+-- S is normally covered by cc
+map.set("n", "S", "i<cr><esc>^mwgk:silent! s/\\v +$//<cr>:noh<cr>`w", { desc = "Split line at cursor" })
+-- You never want Ex mode. Make Q useful
+map.set("n", "Q", "gqip", { desc = "Reformat paragraph" })
+map.set("v", "Q", "gq", { desc = "Reformat selection" })
+-- Great for typing constants without Capslock
+map.set("i", "<C-u>", "<esc>mzgUiw`za", { desc = "Uppercase current word" })
+-- Select Entire Buffer
+vim.keymap.set("n", "vaa", "ggvGg_", { desc = "Select entire buffer (charwise)" })
+vim.keymap.set("n", "Vaa", "ggVG", { desc = "Select entire buffer (linewise)" })
+--  Prevent Accidental Undo in Visual Mode
+vim.keymap.set("v", "u", "<nop>", { desc = "Disabled: use gu to lowercase" })
+vim.keymap.set("v", "gu", "u", { desc = "Lowercase selection" })
+
 map.set("c", "<C-A>", "<Home>") -- bash like keys for the command line
 map.set("c", "<C-E>", "<End>") -- bash like keys for the command line
 map.set("c", "<C-K>", "<C-U>") -- bash like keys for the command line
@@ -147,8 +163,6 @@ map.set("n", "]q", "<cmd>cnext<cr>", { desc = "Next quickfix" })
 map.set("n", "[q", "<cmd>cprev<cr>", { desc = "Prev quickfix" })
 map.set("n", "]l", "<cmd>lnext<cr>", { desc = "Next loclist" })
 map.set("n", "[l", "<cmd>lprev<cr>", { desc = "Prev loclist" })
-
--- map.set("n", ",T", ":let _s=@/<Bar>:%s/\\s\\+$//e<Bar>%s/ \\+\\ze\\t//e<Bar>:let @/=_s<Bar>:unlet _s<CR>", opts) -- trim whitespace before tabs and eol
 
 -- better indenting
 map.set("v", "<", "<gv") -- allow multiple indentation in visual mode

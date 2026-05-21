@@ -42,7 +42,6 @@ o.wildmode = "longest:full,full" -- smarter cmdline completion behavior
 o.conceallevel = 2 -- Hide * markup for bold and italic, but not markers with substitutions
 o.confirm = true -- Confirm to save changes before exiting modified buffer
 o.updatetime = 200 -- faster CursorHold (default is 4000ms — yours may be slow for diagnostics)
-o.cursorline = true -- highlight the current line
 o.shiftround = true -- rounds >> and << to the nearest shiftwidth multiple
 o.expandtab = true -- use spaces instead of tab characters
 o.showmatch = true -- brefiely highlight matching grouping symbols
@@ -73,7 +72,7 @@ o.number = true -- show line number on left
 o.autoindent = true -- maintain indent of current line
 o.tabstop = 4 -- number of spaces in a tab
 o.softtabstop = 4 -- make spaces feel like tabs backspacing
-o.synmaxcol = 200 -- don't highlight long lines
+o.synmaxcol = 800 -- don't highlight long lines
 -- set options
 o.shiftwidth = 4 -- read help to set up later
 o.winminwidth = 5 -- Minimum window width
@@ -103,6 +102,7 @@ o.spelloptions:append("noplainbuffer")
 
 -- diff
 o.diffopt = "filler,internal,closeoff,algorithm:histogram,context:5,linematch:60"
+o.diffopt:append("vertical")
 
 -- set colorscheme
 o.termguicolors = true -- enable 24bit colors in TUI, uses guibg/guifg
