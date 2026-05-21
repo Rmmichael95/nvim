@@ -48,6 +48,7 @@ map.set("v", "u", "<nop>", { desc = "Disabled: use gu to lowercase" })
 map.set("v", "gu", "u", { desc = "Lowercase selection" })
 -- map.set("n", "q:", "<nop>") -- disable cmd history popup
 -- map.set("n", "Q", "gq") -- disable cmd history popup
+map.set("v", "K", "k") -- Fix K in visual mode
 -- command-line history navigation
 map.set("c", "<C-p>", "<Up>")
 map.set("c", "<C-n>", "<Down>")
