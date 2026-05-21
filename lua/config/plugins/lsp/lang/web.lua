@@ -114,19 +114,6 @@ lsp.setup("graphql", {
 	end,
 })
 
-lsp.setup("sqls", {
-	settings = {
-		sqls = {
-			connections = {
-				{
-					driver = "mysql",
-					dataSourceName = "admin:password@tcp(localhost:3306)/",
-				},
-			},
-		},
-	},
-})
-
 -- Svelte (disabled by default)
 -- lsp.setup("svelte", {
 --   filetypes = { "svelte" },
