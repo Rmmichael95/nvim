@@ -3,7 +3,6 @@ return {
 	-- Optional dependencies
 	dependencies = {
 		{ "echasnovski/mini.icons", opts = {} },
-		"tpope/vim-eunuch",
 	},
 	lazy = false,
 	keys = {

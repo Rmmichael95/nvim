@@ -74,6 +74,8 @@ return {
 				["javascript.jsx"] = { "prettier" },
 				["typescript.tsx"] = { "prettier" },
 				svelte = { "prettier" },
+				sql = { "sql_formatter" },
+				mysql = { "sql_formatter" },
 				c = { "clang-format" },
 				cpp = { "clang-format" },
 				css = { "prettier" },

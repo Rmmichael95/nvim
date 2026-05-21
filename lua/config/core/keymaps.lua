@@ -137,6 +137,12 @@ map.set({ "n", "x" }, "<Down>", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", ex
 map.set({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
 map.set({ "n", "x" }, "<Up>", "v:count == 0 ? 'gk' : 'k'", { desc = "Up", expr = true, silent = true })
 
+-- vim-unimpaired style keymaps
+map.set("n", "]q", "<cmd>cnext<cr>", { desc = "Next quickfix" })
+map.set("n", "[q", "<cmd>cprev<cr>", { desc = "Prev quickfix" })
+map.set("n", "]l", "<cmd>lnext<cr>", { desc = "Next loclist" })
+map.set("n", "[l", "<cmd>lprev<cr>", { desc = "Prev loclist" })
+
 -- map.set("n", ",T", ":let _s=@/<Bar>:%s/\\s\\+$//e<Bar>%s/ \\+\\ze\\t//e<Bar>:let @/=_s<Bar>:unlet _s<CR>", opts) -- trim whitespace before tabs and eol
 
 -- better indenting
