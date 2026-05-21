@@ -29,6 +29,7 @@ return {
 			"vtsls",
 			"graphql-language-service-cli",
 			"prisma-language-server",
+			"sql-formatter",
 			-- LSP — web
 			"css-lsp", -- web.lua
 			"emmet-language-server", -- web.lua
