@@ -95,19 +95,19 @@ lsp.setup("vtsls", {
 			preferences = { importModuleSpecifier = "relative" },
 			suggest = { completeFunctionCalls = true },
 		},
-	},
-	vtsls = {
-		-- Move-to-file refactor (appears in code actions alongside extract)
-		enableMoveToFileCodeAction = true,
-		-- Prefer the project's own tsdk over the bundled one.
-		-- This matters for Next.js: the project's tsserver knows about the
-		-- Next.js tsconfig paths and module augmentations in node_modules.
-		autoUseWorkspaceTsdk = true,
-		experimental = {
-			completion = {
-				-- Server-side fuzzy match is faster than client re-ranking on
-				-- large projects where completion lists are in the thousands.
-				enableServerSideFuzzyMatch = true,
+		vtsls = {
+			-- Move-to-file refactor (appears in code actions alongside extract)
+			enableMoveToFileCodeAction = true,
+			-- Prefer the project's own tsdk over the bundled one.
+			-- This matters for Next.js: the project's tsserver knows about the
+			-- Next.js tsconfig paths and module augmentations in node_modules.
+			autoUseWorkspaceTsdk = true,
+			experimental = {
+				completion = {
+					-- Server-side fuzzy match is faster than client re-ranking on
+					-- large projects where completion lists are in the thousands.
+					enableServerSideFuzzyMatch = true,
+				},
 			},
 		},
 	},
