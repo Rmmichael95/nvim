@@ -5,9 +5,6 @@ local g = vim.g -- global variable
 local o = vim.opt -- set options
 local cmd = vim.cmd -- vim command
 
--- lua filetype detection
-g.do_filetype_lua = 1
-
 -- set system python3
 g.python3_host_prog = "/usr/bin/python3"
 
@@ -41,19 +38,18 @@ g.trouble_lualine = true
 
 -- global options
 o.autowrite = true -- Enable auto write
-o.completeopt = "menu,menuone,noselect"
+o.completeopt = "menu,menuone,noselect,fuzzy"
 o.conceallevel = 2 -- Hide * markup for bold and italic, but not markers with substitutions
 o.confirm = true -- Confirm to save changes before exiting modified buffer
 o.expandtab = true -- use spaces instead of tab characters
-o.showcmd = true -- show command info at bottom
 o.showmatch = true -- brefiely highlight matching grouping symbols
 o.backspace = "indent,eol,start" -- allow unrestricted backspacing in insert mode
-o.ruler = true -- show current line/col number
 o.scrolloff = 10 -- number of lines from edge until screen scroll
+o.smoothscroll = true -- scroll by screen lines, not file lines (great with wrap)
+
 o.mouse = "a" -- enable all mouse modes
 o.mousemodel = "popup" -- right click pops up window
 o.grepprg = "rg\\ --vimgrep" -- use rg for vimgrep
-o.hidden = true -- hide unloaded buffers instead of abandoning
 o.splitright = true -- make vsplit to right of current window
 o.splitbelow = true -- make hsplit below current window
 o.splitkeep = "screen"
@@ -61,13 +57,13 @@ o.inccommand = "nosplit" -- show affects of commands incrimentally
 o.visualbell = true -- show visual bell instead of beeping
 o.virtualedit = "block" -- allow virual editing in visual block
 o.laststatus = 3 -- only one statuslinedmenu < /dev/null
-o.winhl = "LineNr:white" -- make line number of inctive window white
 -- window options
 o.spell = false -- don't check spelling
 o.wrap = false -- don't wrap text lines
 o.foldenable = false -- start with fold open
 o.foldmethod = "expr" -- method to fold text; on expression
 o.foldexpr = "v:lua.vim.treesitter.foldexpr()" -- use treesitter to recognize told expression
+o.foldtext = "" -- uses the actual line content as fold text (0.10+)
 
 o.number = true -- show line number on left
 -- buffer options
@@ -85,14 +81,12 @@ o.smartcase = true -- smart search case-sensativity
 o.modeline = false -- the modeline is a well-known security risk
 o.signcolumn = "yes"
 
-o.inccommand = "nosplit" -- preview incremental substitute
 o.jumpoptions = "view"
 o.winblend = 0
 o.pumblend = 0 -- Popup blend
 o.pumheight = 10 -- Maximum number of entries in a popup
 
 o.showmode = false -- Dont show mode since we have a statusline
-o.scrolloff = 4 -- Lines of context
 o.sidescrolloff = 8 -- Columns of context
 o.sessionoptions = { "buffers", "curdir", "tabpages", "winsize", "help", "globals", "skiprtp", "folds" }
 
@@ -130,7 +124,6 @@ o.fillchars = {
 	eob = " ",
 }
 -- file encoding
-o.encoding = "utf-8" -- file content encoding for current buffer
 o.fileencoding = "utf-8" -- file content encoding for current buffer
 o.fileencodings = "utf-8" -- list of encoding considered when starting a file
 o.fileformats = { "unix", "dos", "mac" } -- gives eol formats
@@ -156,17 +149,16 @@ o.undofile = true -- undo across edits
 o.undolevels = 10000 -- undo everything
 
 o.shortmess = o.shortmess + "A" -- ignore annoying swapfile messages
+o.shortmess = o.shortmess + "C" -- don't show ins-completion-menu messages (e.g. "scanning tags")
 o.shortmess = o.shortmess + "I" -- no splash screen
 o.shortmess = o.shortmess + "O" -- file-read message overwrites previous
 o.shortmess = o.shortmess + "T" -- truncate non-file messages in middle
 o.shortmess = o.shortmess + "W" -- don't echo "[w]"/"[written]" when writing
-o.shortmess = o.shortmess + "a" -- use abbreviations in messages eg. `[RO]` instead of `[readonly]`
-o.shortmess = o.shortmess + "c" -- completion messages
+o.shortmess = o.shortmess + "a" -- use abbreviations in messages e.g. `[RO]` instead of `[readonly]`
+o.shortmess = o.shortmess + "c" -- don't show ins-completion-menu match count (e.g. "1 of 5")
 o.shortmess = o.shortmess + "o" -- overwrite file-written messages
-o.shortmess = o.shortmess + "t" -- truncate file messages at start
-o.shortmess:append({ W = true, I = true, c = true, C = true })
+o.shortmess = o.shortmess + "t" -- truncate file messages at start-- Create directories if they don't exist
 
--- Create directories if they don't exist
 local dirs = { vim.o.undodir, vim.o.backupdir, vim.o.directory }
 for _, dir in ipairs(dirs) do
 	if vim.fn.isdirectory(dir) == 0 then

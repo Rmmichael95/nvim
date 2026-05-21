@@ -91,8 +91,8 @@ lsp.setup("intelephense", {
 			},
 			environment = {
 				includePaths = {
-					"~/.config/composer/vendor/php-stubs/",
-					"~/.config/composer/vendor/wpsyntex/",
+					vim.fn.expand("~") .. "/.config/composer/vendor/php-stubs/",
+					vim.fn.expand("~") .. "/.config/composer/vendor/wpsyntex/",
 				},
 			},
 			diagnostics = {

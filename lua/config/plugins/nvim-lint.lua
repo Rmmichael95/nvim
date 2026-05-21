@@ -42,6 +42,7 @@ return {
 			javascriptreact = { "eslint_d" },
 			markdown = { "markdownlint-cli2" },
 			typescriptreact = { "eslint_d" },
+			graphql = { "eslint_d" },
 			svelte = { "eslint_d" },
 			php = { "phpcs" },
 			python = { "pylint" },

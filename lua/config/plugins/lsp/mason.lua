@@ -24,8 +24,9 @@ return {
 			"zls", -- system.lua
 			"systemd-lsp", -- system.lua
 			"texlab", -- tex.lua
-			"ltex-ls", -- tex.lua        (was missing)
+			"ltex-ls", -- tex.lua
 			"typescript-language-server", -- typescript.lua
+			"graphql-language-service-cli",
 			-- LSP — web
 			"css-lsp", -- web.lua
 			"emmet-language-server", -- web.lua
