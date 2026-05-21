@@ -41,6 +41,7 @@ o.completeopt = "menu,menuone,noselect,fuzzy"
 o.wildmode = "longest:full,full" -- smarter cmdline completion behavior
 o.wildcharm = string.byte(vim.api.nvim_replace_termcodes("<C-z>", true, false, true))
 o.complete:remove("i") -- Faster <C-n> Completion
+vim.cmd("set wildcharm=<C-z>") -- triggers wildmenu completion mid-macro
 o.conceallevel = 2 -- Hide * markup for bold and italic, but not markers with substitutions
 o.confirm = true -- Confirm to save changes before exiting modified buffer
 o.updatetime = 200 -- faster CursorHold (default is 4000ms — yours may be slow for diagnostics)
