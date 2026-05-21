@@ -21,6 +21,18 @@ for item in items
 endfor
 ]])
 
+-- Toggle maximize current split
+local _maximized = false
+map.set("n", "<leader>wm", function()
+	_maximized = not _maximized
+	if _maximized then
+		vim.cmd("wincmd _")
+		vim.cmd("wincmd |")
+	else
+		vim.cmd("wincmd =")
+	end
+end, { desc = "Toggle maximize split" })
+
 -- Clear search with <esc>
 map.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and Clear hlsearch" })
 

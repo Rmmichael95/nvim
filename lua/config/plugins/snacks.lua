@@ -66,6 +66,7 @@ return {
 					wrap = false,
 				},
 			},
+			input = { enabled = true },
 			notifier = {
 				enabled = true,
 				timeout = 3000,
