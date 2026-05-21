@@ -116,6 +116,7 @@ o.listchars = {
 	precedes = "❮",
 	tab = "▷⋯",
 	eol = "¬",
+	trail = "⌴",
 }
 
 o.fillchars = {

@@ -43,12 +43,12 @@ map.set("n", "Q", "gqip", { desc = "Reformat paragraph" })
 map.set("v", "Q", "gq", { desc = "Reformat selection" })
 -- Great for typing constants without Capslock
 map.set("i", "<C-u>", "<esc>mzgUiw`za", { desc = "Uppercase current word" })
--- Select Entire Buffer
-vim.keymap.set("n", "vaa", "ggvGg_", { desc = "Select entire buffer (charwise)" })
-vim.keymap.set("n", "Vaa", "ggVG", { desc = "Select entire buffer (linewise)" })
 --  Prevent Accidental Undo in Visual Mode
 vim.keymap.set("v", "u", "<nop>", { desc = "Disabled: use gu to lowercase" })
 vim.keymap.set("v", "gu", "u", { desc = "Lowercase selection" })
+
+-- map.set("n", "q:", "<nop>") -- disable cmd history popup
+-- map.set("n", "Q", "gq") -- disable cmd history popup
 
 map.set("c", "<C-A>", "<Home>") -- bash like keys for the command line
 map.set("c", "<C-E>", "<End>") -- bash like keys for the command line
@@ -79,9 +79,6 @@ map.set("o", "N", "'nN'[v:searchforward]", { expr = true, desc = "Prev Search Re
 
 map.set("n", ";", ":") -- easy command mode
 map.set("n", "V", "V`]") -- easy linewise reselection of what you just paste
-
-map.set("n", "q:", "<nop>") -- disable cmd history popup
-map.set("n", "Q", "gq") -- disable cmd history popup
 
 map.set("n", "<leader>|", "<Cmd>vsplit<CR>") -- easy vertical split
 map.set("n", "<leader>-", "<Cmd>split<CR>") -- easy horizontal split
@@ -119,8 +116,9 @@ map.set("n", "<C-h>", "<C-w>h") -- easy buffer navigation
 map.set("n", "<C-j>", "<C-w>j") -- easy buffer navigation
 map.set("n", "<C-k>", "<C-w>k") -- easy buffer navigation
 map.set("n", "<C-l>", "<C-w>l") -- easy buffer navigation
-map.set("n", "vaa", "ggvGg_") -- select entire buffer
-map.set("n", "Vaa", "ggVG") -- select entire buffer
+-- Select Entire Buffer
+vim.keymap.set("n", "vaa", "ggvGg_", { desc = "Select entire buffer (charwise)" })
+vim.keymap.set("n", "Vaa", "ggVG", { desc = "Select entire buffer (linewise)" })
 
 -- Move Lines
 map.set("n", "<A-j>", "<Cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
