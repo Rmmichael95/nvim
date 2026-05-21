@@ -19,7 +19,11 @@ map.set("n", "<leader>wm", function()
 end, { desc = "Toggle maximize split" })
 
 -- Clear search with <esc>
-map.set({ "i", "n" }, "<esc>", "<cmd>noh<cr><esc>", { desc = "Escape and Clear hlsearch" })
+map.set({ "i", "n", "s" }, "<esc>", function()
+	vim.cmd("noh")
+	-- if using blink.cmp or luasnip, stop snippet session here
+	return "<esc>"
+end, { expr = true })
 
 -- Clear search, diff update and redraw
 -- taken from runtime/lua/_editor.lua
@@ -90,8 +94,11 @@ map.set("n", "<C-Down>", "<Cmd>resize -2<CR>", { desc = "Decrease Window Height"
 map.set("n", "<C-Left>", "<Cmd>vertical resize -2<CR>", { desc = "Decrease Window Width" })
 map.set("n", "<C-Right>", "<Cmd>vertical resize +2<CR>", { desc = "Increase Window Width" })
 
-map.set("n", "<C-9>", ":bp<CR>") -- easy switch buffers
-map.set("n", "<C-0>", ":bn<CR>") -- easy switch buffers
+map.set("n", "<S-h>", "<cmd>bprevious<cr>", { desc = "Prev Buffer" })
+map.set("n", "<S-l>", "<cmd>bnext<cr>", { desc = "Next Buffer" })
+map.set("n", "[b", "<cmd>bprevious<cr>")
+map.set("n", "]b", "<cmd>bnext<cr>")
+map.set("n", "<leader>bb", "<cmd>e #<cr>", { desc = "Switch to last buffer" })
 map.set("n", "<C-h>", "<C-w>h") -- easy buffer navigation
 map.set("n", "<C-j>", "<C-w>j") -- easy buffer navigation
 map.set("n", "<C-k>", "<C-w>k") -- easy buffer navigation
@@ -114,6 +121,7 @@ map.set("n", ",W", "<Cmd>w!!<CR>") -- force quit
 map.set("n", ",z", "<Cmd>wq!<CR>") -- force save quit
 map.set("n", ",d", "<Cmd>_d<CR>") -- delete to blackhole buffer
 map.set("n", ",e", "<Cmd>w!<CR>:e<CR>") -- reload file
+map.set({ "i", "x", "n", "s" }, "<C-s>", "<cmd>w<cr><esc>", { desc = "Save File" })
 
 map.set("n", ",cd", "<Cmd>cd %:p:h<CR>:pwd<CR>") -- change wd to where the file in the buffer is located w/ `,cd`
 
@@ -145,8 +153,15 @@ map.set("n", "[l", "<cmd>lprev<cr>", { desc = "Prev loclist" })
 -- better indenting
 map.set("v", "<", "<gv") -- allow multiple indentation in visual mode
 map.set("v", ">", ">gv") -- allow multiple deindentation in visual mode
+map.set("n", "gco", "o<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>", { desc = "Add Comment Below" })
+map.set("n", "gcO", "O<esc>Vcx<esc><cmd>normal gcc<cr>fxa<bs>", { desc = "Add Comment Above" })
 
 map.set("t", "<ESC>", "<C-\\><C-n><C-w><C-p>") -- <ESC> exits in terminal mode
+
+-- Adding these means each ,.;: is a separate undo step — huge for prose/code editing
+map.set("i", ",", ",<c-g>u")
+map.set("i", ".", ".<c-g>u")
+map.set("i", ";", ";<c-g>u")
 
 -- Map vim user command from command.lua
 
@@ -176,3 +191,17 @@ vim.keymap.set("n", "<leader>sa", function()
 		end
 	end)
 end, { desc = "AI Semantic Note Search" })
+
+map.set("n", "<leader>xl", function()
+	local success, err = pcall(vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 and vim.cmd.lclose or vim.cmd.lopen)
+	if not success and err then
+		vim.notify(err, vim.log.levels.ERROR)
+	end
+end, { desc = "Location List" })
+
+map.set("n", "<leader>xq", function()
+	local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and vim.cmd.cclose or vim.cmd.copen)
+	if not success and err then
+		vim.notify(err, vim.log.levels.ERROR)
+	end
+end, { desc = "Quickfix List" })

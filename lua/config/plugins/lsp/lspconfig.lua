@@ -63,7 +63,7 @@ return {
 			if type(opts.diagnostics.virtual_text) == "table" and opts.diagnostics.virtual_text.prefix == "icons" then
 				opts.diagnostics.virtual_text.prefix = vim.fn.has("nvim-0.10.0") == 0 and "●"
 					or function(diagnostic)
-						local icons = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = " " }
+						local icons = { Error = " ", Warn = " ", Hint = "󰠠 ", Info = "  " }
 						for d, icon in pairs(icons) do
 							if diagnostic.severity == vim.diagnostic.severity[d:upper()] then
 								return icon
@@ -78,6 +78,23 @@ return {
 			vim.keymap.set("n", "<leader>e", function()
 				vim.diagnostic.open_float(nil, opts.diagnostics.float)
 			end, { desc = "Show diagnostic float" })
+
+			-- ── Diagnostic navigation (0.10+ vim.diagnostic.jump) ─────────────
+			local function diag_goto(next, severity)
+				return function()
+					vim.diagnostic.jump({
+						count = (next and 1 or -1) * vim.v.count1,
+						severity = severity and vim.diagnostic.severity[severity] or nil,
+						float = true,
+					})
+				end
+			end
+			vim.keymap.set("n", "]d", diag_goto(true), { desc = "Next Diagnostic" })
+			vim.keymap.set("n", "[d", diag_goto(false), { desc = "Prev Diagnostic" })
+			vim.keymap.set("n", "]e", diag_goto(true, "ERROR"), { desc = "Next Error" })
+			vim.keymap.set("n", "[e", diag_goto(false, "ERROR"), { desc = "Prev Error" })
+			vim.keymap.set("n", "]w", diag_goto(true, "WARN"), { desc = "Next Warning" })
+			vim.keymap.set("n", "[w", diag_goto(false, "WARN"), { desc = "Prev Warning" })
 
 			-- ── LspAttach — keymaps & features ────────────────────────────────
 			vim.api.nvim_create_autocmd("LspAttach", {

@@ -11,7 +11,6 @@ local ts_inlay_hints = {
 	includeInlayFunctionLikeReturnTypeHints = true,
 	includeInlayEnumMemberValueHints = true,
 }
-
 lsp.setup("ts_ls", {
 	filetypes = {
 		"javascript",
@@ -21,6 +20,36 @@ lsp.setup("ts_ls", {
 		"typescriptreact",
 		"typescript.tsx",
 	},
+
+	-- Skip attachment in Next.js projects — vtsls handles those instead
+	root_dir = function(bufnr, cb)
+		local fname = vim.api.nvim_buf_get_name(bufnr)
+		local next_markers = {
+			"next.config.js",
+			"next.config.ts",
+			"next.config.mjs",
+			"next.config.cjs",
+		}
+		local is_next = vim.fs.find(next_markers, {
+			path = vim.fs.dirname(fname),
+			upward = true,
+			stop = vim.uv.os_homedir(),
+		})[1]
+
+		if is_next then
+			return -- vtsls wins, ts_ls skips this buffer
+		end
+
+		-- Non-Next.js project — find normal TS root and attach
+		local root = vim.fs.find({ "tsconfig.json", "jsconfig.json", "package.json", ".git" }, {
+			path = vim.fs.dirname(fname),
+			upward = true,
+			stop = vim.uv.os_homedir(),
+		})[1]
+
+		cb(root and vim.fs.dirname(root) or vim.fs.dirname(fname))
+	end,
+
 	settings = {
 		typescript = {
 			inlayHints = ts_inlay_hints,
