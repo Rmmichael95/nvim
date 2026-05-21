@@ -142,6 +142,22 @@ aucmd("BufNewFile", {
 	end,
 })
 
+-- Python skeleton on new file
+aucmd("BufNewFile", {
+	pattern = "*.py",
+	callback = function()
+		vim.schedule(load_document_skeleton)
+	end,
+})
+
+-- R skeleton on new file
+aucmd("BufNewFile", {
+	pattern = { "*.r", "*.R" },
+	callback = function()
+		vim.schedule(load_document_skeleton)
+	end,
+})
+
 -- ── autocmds.lua patch ──────────────────────────────────────────────────────
 --
 -- Add these lines directly after the existing markdown BufNewFile block:
