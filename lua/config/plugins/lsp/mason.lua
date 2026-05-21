@@ -26,6 +26,7 @@ return {
 			"texlab", -- tex.lua
 			"ltex-ls", -- tex.lua
 			"typescript-language-server", -- typescript.lua
+			"vtsls",
 			"graphql-language-service-cli",
 			-- LSP — web
 			"css-lsp", -- web.lua
