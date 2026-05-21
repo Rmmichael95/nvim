@@ -49,7 +49,7 @@ o.smoothscroll = true -- scroll by screen lines, not file lines (great with wrap
 
 o.mouse = "a" -- enable all mouse modes
 o.mousemodel = "popup" -- right click pops up window
-o.grepprg = "rg\\ --vimgrep" -- use rg for vimgrep
+o.grepprg = "rg --vimgrep" -- use rg for vimgrep
 o.splitright = true -- make vsplit to right of current window
 o.splitbelow = true -- make hsplit below current window
 o.splitkeep = "screen"
@@ -119,7 +119,7 @@ o.fillchars = {
 	foldclose = "",
 	foldsep = " ",
 	fold = "·", -- MIDDLE DOT (U+00B7, UTF-8: C2 B7)
-	diff = "/", -- BULLET OPERATOR (U+2219, UTF-8: E2 88 99)
+	diff = "╱",
 	vert = "┃", -- BOX DRAWINGS HEAVY VERTICAL (U+2503, UTF-8: E2 94 83)
 	eob = " ",
 }

@@ -53,6 +53,29 @@ return {
 		},
 	},
 
+	-- Add to lua/config/plugins/mini.lua
+	{
+		"echasnovski/mini.ai",
+		event = "VeryLazy",
+		opts = function()
+			local ai = require("mini.ai")
+			return {
+				custom_textobjects = {
+					-- Single-char symmetric delimiters  (yi| ci| da| etc.)
+					["|"] = ai.gen_spec.pair("|", "|", { type = "greedy" }),
+					["/"] = ai.gen_spec.pair("/", "/", { type = "greedy" }),
+					[":"] = ai.gen_spec.pair(":", ":", { type = "greedy" }),
+					["."] = ai.gen_spec.pair(".", ".", { type = "greedy" }),
+					["*"] = ai.gen_spec.pair("*", "*", { type = "greedy" }),
+					["_"] = ai.gen_spec.pair("_", "_", { type = "greedy" }),
+					["\\"] = ai.gen_spec.pair("\\", "\\", { type = "greedy" }),
+				},
+				-- Search up to 500 chars for a text object (adjust to taste)
+				search_method = "cover_or_next",
+			}
+		end,
+	},
+
 	-- ── Commenting with treesitter context awareness ─────────────────────────
 	{
 		"echasnovski/mini.comment",
