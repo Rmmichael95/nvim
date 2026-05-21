@@ -26,7 +26,7 @@ local function mirror(args)
 	return args[1][1]
 end
 
-ls.add_snippets("sql", {
+local sql_snippets = {
 
 	-- ══════════════════════════════════════════════════════════════════════════
 	-- QUERY PATTERNS
@@ -584,10 +584,11 @@ ls.add_snippets("sql", {
 		f(mirror, { 1 }),
 		t(";"),
 	}),
-})
+}
 
--- Register the same snippets for MySQL and plsql filetypes.
--- (filetype_extend in snippets.lua is the cleaner approach;
---  direct registration here means it works even without the extend.)
-ls.add_snippets("mysql", ls.get_snippets("sql") or {})
-ls.add_snippets("plsql", ls.get_snippets("sql") or {})
+-- Register under all SQL-family filetypes using the same local table.
+-- filetype_extend("mysql", { "sql" }) in snippets.lua is still recommended
+-- so dadbod-completion and LSP providers also inherit correctly.
+ls.add_snippets("sql", sql_snippets)
+ls.add_snippets("mysql", sql_snippets)
+ls.add_snippets("plsql", sql_snippets)

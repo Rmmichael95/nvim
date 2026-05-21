@@ -2,6 +2,8 @@
 -- LuaSnip snippets for C# files — modern C# (9–13) + xUnit + ASP.NET Core.
 -- Loaded by snippets.lua via luasnip.loaders.from_lua.
 --
+-- DO NOT put autocmds, keymaps, or vim.api calls here.
+--
 -- Filetype: cs  (Roslyn also attaches to cshtml/razor but those are templated)
 --
 -- Scope: fills the gaps between friendly-snippets' basic C# coverage and
@@ -122,7 +124,7 @@ ls.add_snippets("cs", {
 		t("public "), f(mirror, { 1 }), t(" "),
 		f(capitalise, { 2 }),
 		t({ "", "{", "    get => _" }), f(mirror, { 2 }),
-		t({ ";", "    set => _" }), f(mirror, { 2 }), t(" = value;", ""),
+		t({ ";", "    set => _" }), f(mirror, { 2 }), t({ " = value;", "" }),
 		t("}"),
 	}),
 
@@ -183,7 +185,7 @@ ls.add_snippets("cs", {
 		t("public class "), i(1, "SubjectNameTests"),
 		t({ "", "{", "    private readonly " }),
 		i(2, "SubjectName"),
-		t(" _sut;", ""),
+		t({ " _sut;", "" }),
 		t({ "", "    public " }), f(mirror, { 1 }),
 		t({ "()", "    {", "        _sut = new " }),
 		f(mirror, { 2 }),
