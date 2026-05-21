@@ -16,6 +16,9 @@ return {
 			enable_autosnippets = true,
 		})
 		require("luasnip").filetype_extend("php", { "html" })
+		require("luasnip").filetype_extend("scss", { "css" })
+		require("luasnip").filetype_extend("scss.css", { "css", "scss" }) -- your compound filetype
+		require("luasnip").filetype_extend("less", { "css" })
 		require("luasnip").filetype_extend("typescriptreact", { "typescript", "javascript" })
 		require("luasnip").filetype_extend("javascriptreact", { "javascript" })
 	end,

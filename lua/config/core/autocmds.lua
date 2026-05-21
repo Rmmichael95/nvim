@@ -158,6 +158,20 @@ aucmd("BufNewFile", {
 	end,
 })
 
+aucmd("BufNewFile", {
+	pattern = { "*.php" },
+	callback = function()
+		vim.schedule(load_document_skeleton)
+	end,
+})
+
+aucmd("BufNewFile", {
+	pattern = { "*.html", "*.htm" },
+	callback = function()
+		vim.schedule(load_document_skeleton)
+	end,
+})
+
 -- ── autocmds.lua patch ──────────────────────────────────────────────────────
 --
 -- Add these lines directly after the existing markdown BufNewFile block:
