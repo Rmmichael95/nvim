@@ -34,6 +34,18 @@ map.set(
 	{ desc = "Redraw / Clear hlsearch / Diff Update" }
 )
 
+-- Current File's Directory Expander
+map.set("c", "%%", function()
+	if vim.fn.getcmdtype() == ":" then
+		return vim.fn.expand("%:h") .. "/"
+	end
+	return "%%"
+end, { expr = true, desc = "Expand %% to current file's dir" })
+
+-- Repeat :substitute With Flags
+map.set("n", "&", ":&&<CR>", { desc = "Repeat last :s with flags" })
+map.set("x", "&", ":&&<CR>", { desc = "Repeat last :s with flags" })
+
 -- J normally jerks your cursor rightward
 map.set("n", "J", "mzJ`z", { desc = "Join lines, preserve cursor" })
 -- S is normally covered by cc
@@ -56,6 +68,9 @@ map.set("c", "<C-n>", "<Down>")
 map.set("c", "<C-r><C-v>", [[<C-R>=fnameescape(getline("'<")[getpos("'<")[2]-1:getpos("'>")[2]-1])<CR>]])
 -- Select within fold (viz)
 map.set("n", "viz", "v[zo]z$")
+--  Blank Line Insertion
+map.set("n", "[<Space>", "O<Esc>j", { desc = "Add blank line above" })
+map.set("n", "]<Space>", "o<Esc>k", { desc = "Add blank line below" })
 
 map.set("c", "<C-A>", "<Home>") -- bash like keys for the command line
 map.set("c", "<C-E>", "<End>") -- bash like keys for the command line

@@ -39,6 +39,8 @@ g.trouble_lualine = true
 o.autowrite = true -- Enable auto write
 o.completeopt = "menu,menuone,noselect,fuzzy"
 o.wildmode = "longest:full,full" -- smarter cmdline completion behavior
+o.wildcharm = string.byte(vim.api.nvim_replace_termcodes("<C-z>", true, false, true))
+o.complete:remove("i") -- Faster <C-n> Completion
 o.conceallevel = 2 -- Hide * markup for bold and italic, but not markers with substitutions
 o.confirm = true -- Confirm to save changes before exiting modified buffer
 o.updatetime = 200 -- faster CursorHold (default is 4000ms — yours may be slow for diagnostics)
@@ -52,6 +54,7 @@ o.smoothscroll = true -- scroll by screen lines, not file lines (great with wrap
 o.mouse = "a" -- enable all mouse modes
 o.mousemodel = "popup" -- right click pops up window
 o.grepprg = "rg --vimgrep" -- use rg for vimgrep
+o.path:append("**") -- Poor Man's :find Fuzzy Search
 o.splitright = true -- make vsplit to right of current window
 o.splitbelow = true -- make hsplit below current window
 o.splitkeep = "screen"
