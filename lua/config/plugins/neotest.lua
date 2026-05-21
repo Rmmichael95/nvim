@@ -6,6 +6,8 @@ return {
 			"nvim-lua/plenary.nvim",
 			"Nsidorenco/neotest-vstest", -- dotnet via VS Test Platform
 			"olimorris/neotest-phpunit",
+			"marilari88/neotest-vitest",
+			"nvim-neotest/neotest-jest",
 		},
 		keys = {
 			{

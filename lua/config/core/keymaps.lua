@@ -11,16 +11,16 @@ local _maximized = false
 map.set("n", "<leader>wm", function()
 	_maximized = not _maximized
 	if _maximized then
-		vim.cmd("wincmd _")
-		vim.cmd("wincmd |")
+		cmd("wincmd _")
+		cmd("wincmd |")
 	else
-		vim.cmd("wincmd =")
+		cmd("wincmd =")
 	end
 end, { desc = "Toggle maximize split" })
 
 -- Clear search with <esc>
 map.set({ "i", "n", "s" }, "<esc>", function()
-	vim.cmd("noh")
+	cmd("noh")
 	-- if using blink.cmp or luasnip, stop snippet session here
 	return "<esc>"
 end, { expr = true })
@@ -44,11 +44,17 @@ map.set("v", "Q", "gq", { desc = "Reformat selection" })
 -- Great for typing constants without Capslock
 map.set("i", "<C-u>", "<esc>mzgUiw`za", { desc = "Uppercase current word" })
 --  Prevent Accidental Undo in Visual Mode
-vim.keymap.set("v", "u", "<nop>", { desc = "Disabled: use gu to lowercase" })
-vim.keymap.set("v", "gu", "u", { desc = "Lowercase selection" })
-
+map.set("v", "u", "<nop>", { desc = "Disabled: use gu to lowercase" })
+map.set("v", "gu", "u", { desc = "Lowercase selection" })
 -- map.set("n", "q:", "<nop>") -- disable cmd history popup
 -- map.set("n", "Q", "gq") -- disable cmd history popup
+-- command-line history navigation
+map.set("c", "<C-p>", "<Up>")
+map.set("c", "<C-n>", "<Down>")
+-- Pull last visual selection onto command line
+map.set("c", "<C-r><C-v>", [[<C-R>=fnameescape(getline("'<")[getpos("'<")[2]-1:getpos("'>")[2]-1])<CR>]])
+-- Select within fold (viz)
+map.set("n", "viz", "v[zo]z$")
 
 map.set("c", "<C-A>", "<Home>") -- bash like keys for the command line
 map.set("c", "<C-E>", "<End>") -- bash like keys for the command line
@@ -98,8 +104,8 @@ map.set("n", "[q", "<cmd>cprev<CR>zz", { desc = "Prev quickfix" })
 map.set("n", "]Q", "<cmd>clast<CR>zz", { desc = "Last quickfix" })
 map.set("n", "[Q", "<cmd>cfirst<CR>zz", { desc = "First quickfix" })
 
-vim.keymap.set("n", "<leader>k", "<cmd>lnext<CR>zz")
-vim.keymap.set("n", "<leader>j", "<cmd>lprev<CR>zz")
+map.set("n", "<leader>k", "<cmd>lnext<CR>zz")
+map.set("n", "<leader>j", "<cmd>lprev<CR>zz")
 
 -- Resize window using <ctrl> arrow keys
 map.set("n", "<C-Up>", "<Cmd>resize +2<CR>", { desc = "Increase Window Height" })
@@ -117,8 +123,8 @@ map.set("n", "<C-j>", "<C-w>j") -- easy buffer navigation
 map.set("n", "<C-k>", "<C-w>k") -- easy buffer navigation
 map.set("n", "<C-l>", "<C-w>l") -- easy buffer navigation
 -- Select Entire Buffer
-vim.keymap.set("n", "vaa", "ggvGg_", { desc = "Select entire buffer (charwise)" })
-vim.keymap.set("n", "Vaa", "ggVG", { desc = "Select entire buffer (linewise)" })
+map.set("n", "vaa", "ggvGg_", { desc = "Select entire buffer (charwise)" })
+map.set("n", "Vaa", "ggVG", { desc = "Select entire buffer (linewise)" })
 
 -- Move Lines
 map.set("n", "<A-j>", "<Cmd>execute 'move .+' . v:count1<cr>==", { desc = "Move Down" })
@@ -196,23 +202,23 @@ map.set("n", "<leader>Z", function()
 end, { desc = "Zen mode" })
 
 -- Trigger AI Semantic Search with prompt
-vim.keymap.set("n", "<leader>sa", function()
+map.set("n", "<leader>sa", function()
 	vim.ui.input({ prompt = "AI Concept Search: " }, function(input)
 		if input and input ~= "" then
-			vim.cmd("Nai " .. input)
+			cmd("Nai " .. input)
 		end
 	end)
 end, { desc = "AI Semantic Note Search" })
 
 map.set("n", "<leader>xl", function()
-	local success, err = pcall(vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 and vim.cmd.lclose or vim.cmd.lopen)
+	local success, err = pcall(vim.fn.getloclist(0, { winid = 0 }).winid ~= 0 and cmd.lclose or cmd.lopen)
 	if not success and err then
 		vim.notify(err, vim.log.levels.ERROR)
 	end
 end, { desc = "Location List" })
 
 map.set("n", "<leader>xq", function()
-	local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and vim.cmd.cclose or vim.cmd.copen)
+	local success, err = pcall(vim.fn.getqflist({ winid = 0 }).winid ~= 0 and cmd.cclose or cmd.copen)
 	if not success and err then
 		vim.notify(err, vim.log.levels.ERROR)
 	end
