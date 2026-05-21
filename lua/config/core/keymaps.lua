@@ -71,12 +71,25 @@ map.set("n", "viz", "v[zo]z$")
 --  Blank Line Insertion
 map.set("n", "[<Space>", "O<Esc>j", { desc = "Add blank line above" })
 map.set("n", "]<Space>", "o<Esc>k", { desc = "Add blank line below" })
+map.set("n", "Y", "y$", { desc = "Yank to end of line" })
+map.set("n", "J", "mzJ`z", { desc = "Join line (keep cursor position)" })
 
 map.set("c", "<C-A>", "<Home>") -- bash like keys for the command line
 map.set("c", "<C-E>", "<End>") -- bash like keys for the command line
 map.set("c", "<C-K>", "<C-U>") -- bash like keys for the command line
 
 map.set("c", "cd.", "<Cmd>lcd %:p:h<CR>") -- :cd. change working directory to that of the current file
+
+map.set("n", "<leader>x", function()
+	if vim.bo.filetype == "lua" then
+		vim.cmd("silent! write")
+		vim.cmd("luafile %")
+		vim.notify("Sourced " .. vim.fn.expand("%:t"), vim.log.levels.INFO)
+	elseif vim.bo.filetype == "vim" then
+		vim.cmd("silent! write")
+		vim.cmd("source %")
+	end
+end, { desc = "Execute current file" })
 
 -- Very Magic Mode
 -- map.set("c", "/", "/\\v") -- use sane regexes
