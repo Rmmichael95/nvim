@@ -6,7 +6,9 @@ return {
 
 		s({ trig = "_skel", name = "_skel" }, {
 			t({ "#!/usr/bin/env python3", '"""', "" }),
-			i(1, vim.fn.expand("%:t:r")), -- fix: use f() here
+			f(function()
+				return vim.fn.expand("%:t:r")
+			end),
 			t({ "", '"""', "", "" }),
 			i(0),
 		}),

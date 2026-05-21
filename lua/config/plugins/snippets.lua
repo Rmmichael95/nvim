@@ -16,5 +16,7 @@ return {
 			enable_autosnippets = true,
 		})
 		require("luasnip").filetype_extend("php", { "html" })
+		require("luasnip").filetype_extend("typescriptreact", { "typescript", "javascript" })
+		require("luasnip").filetype_extend("javascriptreact", { "javascript" })
 	end,
 }

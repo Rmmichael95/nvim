@@ -6,13 +6,8 @@
 --
 -- DO NOT put autocmds, keymaps, or vim.api calls here — this file is
 -- evaluated by the LuaSnip loader outside the normal plugin init order.
-
 local ls = require("luasnip")
-local s = ls.snippet
-local t = ls.text_node
-local i = ls.insert_node
-local f = ls.function_node
-local c = ls.choice_node
+local s, t, i, f, c = ls.snippet, ls.text_node, ls.insert_node, ls.function_node, ls.choice_node
 
 -- ── helpers ──────────────────────────────────────────────────────────────────
 

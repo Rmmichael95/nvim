@@ -2,7 +2,7 @@ local ls = require("luasnip")
 local s, t, i, f, c = ls.snippet, ls.text_node, ls.insert_node, ls.function_node, ls.choice_node
 
 return {
-	ls.add_snippets("R", {
+	ls.add_snippets("r", {
 
 		s({ trig = "_skel", name = "_skel" }, {
 			t({ "#' ", "" }),
