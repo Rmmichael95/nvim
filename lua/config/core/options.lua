@@ -7,6 +7,7 @@ g.python3_host_prog = "/usr/bin/python3"
 
 -- set system perl
 g.perl_host_prog = "/usr/bin/perl"
+g.loaded_perl_provider = 0
 
 -- Fix markdown indentation settings
 g.markdown_recommended_style = 0

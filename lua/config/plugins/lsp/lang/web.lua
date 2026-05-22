@@ -50,10 +50,8 @@ lsp.setup("tailwindcss", {
 		"less",
 		"javascript",
 		"javascriptreact",
-		"javascript.jsx",
 		"typescript",
 		"typescriptreact",
-		"typescript.tsx",
 		"svelte",
 		"vue",
 		"astro",
@@ -94,7 +92,7 @@ lsp.setup("tailwindcss", {
 })
 
 lsp.setup("graphql", {
-	filetypes = { "graphql", "gql", "typescriptreact", "javascriptreact" },
+	filetypes = { "graphql", "typescriptreact", "javascriptreact" },
 	root_dir = function(bufnr, cb)
 		local fname = vim.api.nvim_buf_get_name(bufnr)
 		local found = vim.fs.find({

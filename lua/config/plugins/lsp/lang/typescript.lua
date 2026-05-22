@@ -15,10 +15,8 @@ lsp.setup("ts_ls", {
 	filetypes = {
 		"javascript",
 		"javascriptreact",
-		"javascript.jsx",
 		"typescript",
 		"typescriptreact",
-		"typescript.tsx",
 	},
 
 	-- Skip attachment in Next.js projects — vtsls handles those instead
@@ -85,10 +83,8 @@ lsp.setup("vtsls", {
 	filetypes = {
 		"javascript",
 		"javascriptreact",
-		"javascript.jsx",
 		"typescript",
 		"typescriptreact",
-		"typescript.tsx",
 	},
 
 	-- Only attach inside a Next.js project tree.

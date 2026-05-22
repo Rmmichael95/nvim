@@ -12,7 +12,7 @@
 local lsp = require("config.util")
 
 lsp.setup("marksman", {
-	filetypes = { "markdown", "markdown.mdx" },
+	filetypes = { "markdown", "mdx" },
 
 	root_dir = function(bufnr, cb)
 		local fname = vim.api.nvim_buf_get_name(bufnr)
