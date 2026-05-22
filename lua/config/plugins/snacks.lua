@@ -153,7 +153,7 @@ return {
 		keys = {
 			-- Notes
 			{
-				"<leader>ai",
+				"<leader>Ns",
 				function()
 					vim.ui.input({ prompt = "💡 AI Deep Search: " }, function(input)
 						if not input or input == "" then
@@ -243,7 +243,7 @@ return {
 				desc = "Command History",
 			},
 			{
-				"<leader>n",
+				"<leader>N",
 				function()
 					Snacks.picker.notifications()
 				end,
@@ -400,13 +400,6 @@ return {
 					Snacks.picker.lines()
 				end,
 				desc = "Buffer Lines",
-			},
-			{
-				"<leader>sc",
-				function()
-					Snacks.picker.command_history()
-				end,
-				desc = "Command History",
 			},
 			{
 				"<leader>sC",
@@ -623,7 +616,7 @@ return {
 				desc = "Git Blame Line",
 			},
 			{
-				"<leader>gf",
+				"<leader>gF",
 				function()
 					Snacks.lazygit.log_file()
 				end,

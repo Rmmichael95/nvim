@@ -49,7 +49,7 @@ map.set("x", "&", ":&&<CR>", { desc = "Repeat last :s with flags" })
 -- J normally jerks your cursor rightward
 map.set("n", "J", "mzJ`z", { desc = "Join lines, preserve cursor" })
 -- S is normally covered by cc
-map.set("n", "S", "i<cr><esc>^mwgk:silent! s/\\v +$//<cr>:noh<cr>`w", { desc = "Split line at cursor" })
+map.set("n", "<localleader>s", "i<cr><esc>^mwgk:silent! s/\\v +$//<cr>:noh<cr>`w", { desc = "Split line at cursor" })
 -- You never want Ex mode. Make Q useful
 map.set("n", "Q", "gqip", { desc = "Reformat paragraph" })
 map.set("v", "Q", "gq", { desc = "Reformat selection" })
