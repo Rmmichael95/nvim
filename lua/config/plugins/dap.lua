@@ -191,6 +191,150 @@ return {
 
 			require("nvim-dap-virtual-text").setup(opts)
 
+			-- ── Python (debugpy) ─────────────────────────────────────────────────────
+			dap.adapters.python = {
+				type = "executable",
+				command = vim.fn.stdpath("data") .. "/mason/packages/debugpy/venv/bin/python",
+				args = { "-m", "debugpy.adapter" },
+			}
+
+			dap.configurations.python = {
+				{
+					type = "python",
+					request = "launch",
+					name = "Launch file",
+					program = "${file}",
+					pythonPath = function()
+						-- honour virtual envs: .venv > venv > system python
+						local venv = vim.fn.getcwd() .. "/.venv/bin/python"
+						if vim.fn.executable(venv) == 1 then
+							return venv
+						end
+						venv = vim.fn.getcwd() .. "/venv/bin/python"
+						if vim.fn.executable(venv) == 1 then
+							return venv
+						end
+						return vim.fn.exepath("python3") or "python"
+					end,
+					justMyCode = false,
+				},
+				{
+					type = "python",
+					request = "launch",
+					name = "Pytest: current file",
+					module = "pytest",
+					args = { "${file}", "-v" },
+					pythonPath = function()
+						local venv = vim.fn.getcwd() .. "/.venv/bin/python"
+						if vim.fn.executable(venv) == 1 then
+							return venv
+						end
+						return vim.fn.exepath("python3") or "python"
+					end,
+					justMyCode = false,
+					console = "integratedTerminal",
+				},
+				{
+					type = "python",
+					request = "attach",
+					name = "Attach to process",
+					processId = require("dap.utils").pick_process,
+					justMyCode = false,
+				},
+			}
+
+			-- ── C / C++ (cpptools) ───────────────────────────────────────────────────
+			dap.adapters.cppdbg = {
+				type = "executable",
+				command = vim.fn.stdpath("data") .. "/mason/packages/cpptools/extension/debugAdapters/bin/OpenDebugAD7",
+				id = "cppdbg",
+			}
+
+			for _, lang in ipairs({ "c", "cpp" }) do
+				dap.configurations[lang] = {
+					{
+						name = "Launch executable",
+						type = "cppdbg",
+						request = "launch",
+						-- auto-discover: looks for a single binary in build/ or prompts
+						program = function()
+							local bins = vim.fn.glob(vim.fn.getcwd() .. "/build/**/*", false, true)
+							bins = vim.tbl_filter(function(f)
+								return vim.fn.executable(f) == 1 and not f:match("%.so$") and not f:match("%.a$")
+							end, bins)
+							if #bins == 1 then
+								return bins[1]
+							end
+							if #bins > 1 then
+								return vim.fn.input("Pick binary: ", bins[1], "file")
+							end
+							return vim.fn.input("Path to binary: ", vim.fn.getcwd() .. "/build/", "file")
+						end,
+						cwd = "${workspaceFolder}",
+						stopAtEntry = false,
+						setupCommands = {
+							{ text = "-enable-pretty-printing", ignoreFailures = true },
+						},
+					},
+					{
+						name = "Attach to process",
+						type = "cppdbg",
+						request = "attach",
+						processId = require("dap.utils").pick_process,
+						program = function()
+							return vim.fn.input("Path to binary: ", vim.fn.getcwd() .. "/build/", "file")
+						end,
+						cwd = "${workspaceFolder}",
+					},
+				}
+			end
+
+			-- ── Rust (codelldb) ──────────────────────────────────────────────────────
+			-- Requires "codelldb" in mason.lua ensure_installed
+			dap.adapters.codelldb = {
+				type = "server",
+				port = "${port}",
+				executable = {
+					command = vim.fn.stdpath("data") .. "/mason/bin/codelldb",
+					args = { "--port", "${port}" },
+				},
+			}
+
+			dap.configurations.rust = {
+				{
+					name = "Launch binary (cargo)",
+					type = "codelldb",
+					request = "launch",
+					-- auto-discovers the debug binary from `cargo metadata`
+					program = function()
+						local bins = vim.fn.glob(vim.fn.getcwd() .. "/target/debug/*", false, true)
+						bins = vim.tbl_filter(function(f)
+							return vim.fn.executable(f) == 1
+								and not f:match("%.d$")
+								and not f:match("deps")
+								and not f:match("build")
+								and not f:match("incremental")
+						end, bins)
+						if #bins == 1 then
+							return bins[1]
+						end
+						if #bins > 1 then
+							return vim.fn.input("Pick binary: ", bins[1], "file")
+						end
+						return vim.fn.input("Path to binary: ", vim.fn.getcwd() .. "/target/debug/", "file")
+					end,
+					cwd = "${workspaceFolder}",
+					stopOnEntry = false,
+				},
+				{
+					name = "Attach to process",
+					type = "codelldb",
+					request = "attach",
+					processId = require("dap.utils").pick_process,
+					cwd = "${workspaceFolder}",
+				},
+			}
+
 			local path = vim.fn.stdpath("data") .. "/mason/packages/php-debug-adapter"
 			dap.adapters.php = {
 				type = "executable",

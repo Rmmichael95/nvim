@@ -9,64 +9,68 @@ return {
 	-- build = ":MasonUpdate",
 	opts = {
 		ensure_installed = {
-			-- LSP — core
-			"bash-language-server", -- bash.lua
-			"clangd", -- c_cpp.lua
-			"cmake-language-server", -- CMakeLists.txt — pairs with clangd for C/C++ projects
-			"json-lsp", -- json.lua
-			"lua-language-server", -- lua_lang.lua
-			"perlnavigator", -- perl.lua
-			"r-languageserver", -- r_lang.lua
-			"rust-analyzer", -- rust.lua
-			"vim-language-server", -- system.lua
-			"marksman", -- markdown LSP (wiki-links, outline, go-to-def)
-			"yaml-language-server", -- system.lua
-			"zls", -- system.lua
-			"systemd-lsp", -- system.lua
-			"texlab", -- tex.lua
-			"ltex-ls", -- tex.lua
-			"typescript-language-server", -- typescript.lua
-			"vtsls",
-			"graphql-language-service-cli",
-			"prisma-language-server",
-			"sql-formatter",
-			-- LSP — web
-			"css-lsp", -- web.lua
-			"emmet-language-server", -- web.lua
-			"html-lsp", -- web.lua
-			"tailwindcss-language-server", -- web.lua
-			-- LSP — PHP
-			"intelephense", -- php.lua
-			"phpactor", -- php.lua
-			-- LSP — Python
-			"pyright", -- python.lua
-			"ruff", -- python.lua
-			-- C# — roslyn replaces omnisharp
-			"roslyn",
-			"netcoredbg",
-			"csharpier",
-			-- React / JS
-			"js-debug-adapter",
-			-- DAP
-			"cpptools",
-			"debugpy",
-			"firefox-debug-adapter",
-			"php-debug-adapter",
-			-- conform
-			"clang-format",
-			"prettier",
-			"phpcbf",
-			"stylua",
-			"isort",
-			"black",
-			-- lint
-			"codespell",
-			"cpplint",
-			"phpcs",
-			"pylint",
-			"eslint_d",
-			"markdownlint-cli2", -- markdown linter + fixer
-			"markdown-toc", -- auto-generates/updates <!-- toc --> tables of contents
+			-- ── LSP — core ────────────────────────────────────────────────────────
+			"bash-language-server", -- lang/bash.lua
+			"clangd", -- lang/c_cpp.lua
+			"cmake-language-server", -- lang/c_cpp.lua
+			"json-lsp", -- lang/json.lua
+			"lua-language-server", -- lang/lua_lang.lua
+			"perlnavigator", -- lang/perl.lua
+			"r-languageserver", -- lang/r_lang.lua
+			"rust-analyzer", -- lang/rust.lua
+			"vim-language-server", -- lang/system.lua
+			"marksman", -- lang/markdown.lua
+			"yaml-language-server", -- lang/system.lua
+			"zls", -- lang/system.lua
+			"systemd-lsp", -- lang/system.lua
+			"wasm-language-tools", -- lang/system.lua
+			"texlab", -- lang/tex.lua
+			"ltex-ls", -- lang/tex.lua
+			"typescript-language-server", -- lang/typescript.lua
+			"vtsls", -- lang/typescript.lua
+			"graphql-language-service-cli", -- lang/graphql.lua
+			"prisma-language-server", -- lang/prisma.lua
+			-- ── LSP — SQL ─────────────────────────────────────────────────────────
+			"sqls", -- lang/sql.lua
+			-- ── LSP — web ─────────────────────────────────────────────────────────
+			"css-lsp", -- lang/web.lua
+			"emmet-language-server", -- lang/web.lua
+			"html-lsp", -- lang/web.lua
+			"tailwindcss-language-server", -- lang/web.lua
+			-- ── LSP — PHP ─────────────────────────────────────────────────────────
+			"intelephense", -- lang/php.lua
+			"phpactor", -- lang/php.lua
+			-- ── LSP — Python ──────────────────────────────────────────────────────
+			"pyright", -- lang/python.lua
+			"ruff", -- lang/python.lua, conform.lua
+			-- ── LSP — C# ──────────────────────────────────────────────────────────
+			"roslyn", -- lang/cs.lua
+			-- ── DAP ───────────────────────────────────────────────────────────────
+			"netcoredbg", -- dap.lua (cs, fsharp, vb)
+			"cpptools", -- dap.lua (c, cpp)
+			"codelldb", -- dap.lua (rust)
+			"debugpy", -- dap.lua (python)
+			"js-debug-adapter", -- dap.lua (typescript, javascript, node, chrome)
+			"firefox-debug-adapter", -- dap.lua (typescriptreact)
+			"perl-debug-adapter", -- dap.lua (perl)
+			"php-debug-adapter", -- dap.lua (php)
+			-- ── conform ───────────────────────────────────────────────────────────
+			"clang-format", -- conform.lua (c, cpp)
+			"prettier", -- conform.lua (js, ts, css, html, json, yaml, graphql, markdown)
+			"sql-formatter", -- conform.lua (sql, mysql)
+			"csharpier", -- conform.lua (cs, cshtml, razor)
+			"phpcbf", -- conform.lua (php)
+			"stylua", -- conform.lua (lua)
+			"isort", -- conform.lua (python)
+			"black", -- conform.lua (python)
+			-- ── nvim-lint ─────────────────────────────────────────────────────────
+			"codespell", -- nvim-lint.lua (*)
+			"cpplint", -- nvim-lint.lua (c, cpp)
+			"pylint", -- nvim-lint.lua (python)
+			"eslint_d", -- nvim-lint.lua (js, ts, jsx, tsx, graphql, svelte)
+			"phpcs", -- nvim-lint.lua (php)
+			"markdownlint-cli2", -- nvim-lint.lua (markdown), conform.lua (markdown)
+			"markdown-toc", -- conform.lua (markdown)
 		},
 	},
 	config = function(_, opts)
