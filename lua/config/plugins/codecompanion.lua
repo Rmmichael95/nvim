@@ -1,90 +1,178 @@
+-- lua/config/plugins/codecompanion.lua
+
 return {
 	"olimorris/codecompanion.nvim",
 	dependencies = {
 		"nvim-lua/plenary.nvim",
 		"nvim-treesitter/nvim-treesitter",
 	},
-	cmd = { "CodeCompanion", "CodeCompanionChat", "CodeCompanionActions" },
+	cmd = {
+		"CodeCompanion",
+		"CodeCompanionChat",
+		"CodeCompanionActions",
+	},
 	keys = {
 		{ "<leader>aa", "<cmd>CodeCompanionActions<cr>", mode = { "n", "v" }, desc = "AI Actions" },
 		{ "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = "n", desc = "AI Chat Toggle" },
 		{ "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = "v", desc = "AI Chat with Selection" },
 		{ "<leader>cq", "<cmd>CodeCompanionChat Add<cr>", mode = "v", desc = "Add Selection to Chat" },
 	},
+
 	opts = {
-		strategies = {
-			-- Shift default chat strategy to Gemini (Fast, huge context for parsing themes)
+		interactions = {
 			chat = {
 				adapter = "gemini",
-				-- Native MCP Tool registration hook
+
+				opts = {
+					system_prompt = function(ctx)
+						return ctx.default_system_prompt
+							.. [[
+
+Additional WordPress tooling instructions:
+
+A WordPress tool is available. Use it whenever the user asks about the current WordPress install, active theme, installed themes, plugins, WordPress options, WordPress 7 readiness, block theme support, theme.json, templates, template parts, block overrides, or WP-CLI output.
+
+Do not print WP-CLI commands and ask the user to run them.
+Do not guess WordPress state.
+Do not invent command output.
+Use the available tool to gather the information first.
+
+For block override readiness, use the WordPress tool with:
+action = "block_overrides_audit"
+
+For active theme checks, use:
+action = "active_theme"
+]]
+					end,
+				},
+
 				tools = {
+					["wp_cli"] = {
+						description = "Run approved WP-CLI checks against the current local WordPress site.",
+						opts = {
+							require_approval_before = true,
+						},
+						path = "~/.config/nvim/lua/codecompanion/tools/wp_cli.lua",
+					},
+
 					opts = {
-						-- Automatically enables system command execution permissions
-						-- when you request automated theme modifications via chat
-						allow_insecure = true,
-						-- Registers your custom WP-CLI engine alongside the standard suite
-						["wp_cli"] = {
-							callback = "codecompanion.tools.wp_cli",
-							description = "Query your active local WordPress site state parameters",
-							opts = {
-								requires_approval = true, -- Force Neovim to prompt you before launching the shell job
-							},
+						default_tools = {
+							"wp_cli",
 						},
 					},
 				},
 			},
-			inline = { adapter = "flm" },
-			agent = { adapter = "gemini" },
+
+			inline = {
+				adapter = "flm",
+			},
 		},
+
 		adapters = {
 			http = {
-				-- FastFlowLM NPU Configuration (DeepSeek-R1)
+				opts = {
+					allow_insecure = true,
+				},
+
+				-- FastFlowLM NPU — local Qwen/Qwen-compatible endpoint
 				flm = function()
 					return require("codecompanion.adapters").extend("openai_compatible", {
 						name = "flm",
-						formatted_name = "FLM (Qwen3.5)",
+						formatted_name = "FLM",
 						env = {
 							url = "http://127.0.0.1:52625",
 							api_key = "FLM_API_KEY",
 						},
 						schema = {
-							model = { default = "qwen3.5:4b" },
-							temperature = { default = 0.1 },
-							max_tokens = { default = 4096 },
-							reasoning_effort = { default = "high" },
-						},
-					})
-				end,
-
-				-- Google Gemini Configuration (Targeting AI Studio Keys)
-				-- Google Gemini Configuration (Targeting AI Studio Keys)
-				gemini = function()
-					return require("codecompanion.adapters").extend("gemini", {
-						env = {
-							api_key = "cmd:echo $GEMINI_API_KEY",
-						},
-						-- THE FIX: Intercept the complete request right before it sends
-						form_messages = function(self, messages, params)
-							-- Generate CodeCompanion's standard payload format
-							local formatted =
-								require("codecompanion.adapters.gemini").form_messages(self, messages, params)
-
-							-- Forcefully remove the broken thinking parameter object from the body table
-							if formatted and formatted.generationConfig then
-								formatted.generationConfig.thinkingConfig = nil
-							end
-
-							return formatted
-						end,
-						schema = {
 							model = {
-								default = "gemini-2.5-flash",
+								default = "qwen3.5:4b",
+							},
+							temperature = {
+								default = 0.1,
+							},
+							max_tokens = {
+								default = 4096,
 							},
 						},
 					})
 				end,
 
-				-- Optimized OpenAI (Replacing raw placeholder gpt5 block)
+				-- Gemini HTTP adapter patched for CodeCompanion Gemini thinkingConfig issues.
+				-- Keep this until your installed CodeCompanion version no longer sends
+				-- generationConfig.thinkingConfig as a string.
+				gemini = function()
+					local adapters = require("codecompanion.adapters")
+
+					local adapter = adapters.extend("gemini", {
+						env = {
+							api_key = "cmd:echo $GEMINI_API_KEY",
+						},
+						schema = {
+							model = {
+								default = "gemini-2.5-flash-lite",
+								choices = {
+									["gemini-2.5-flash-lite"] = {
+										formatted_name = "Gemini 2.5 Flash Lite",
+										opts = {
+											can_reason = false,
+											has_vision = true,
+										},
+									},
+									["gemini-2.5-flash"] = {
+										formatted_name = "Gemini 2.5 Flash",
+										opts = {
+											can_reason = false,
+											has_vision = true,
+										},
+									},
+								},
+							},
+
+							temperature = {
+								default = 0.2,
+							},
+
+							maxOutputTokens = {
+								default = 8192,
+							},
+
+							thinkingLevel = {
+								optional = true,
+								default = nil,
+								enabled = function()
+									return false
+								end,
+							},
+						},
+					})
+
+					if adapter.schema then
+						adapter.schema.thinkingLevel = {
+							optional = true,
+							default = nil,
+							enabled = function()
+								return false
+							end,
+						}
+					end
+
+					local original_form_parameters = adapter.handlers and adapter.handlers.form_parameters
+
+					if original_form_parameters then
+						adapter.handlers.form_parameters = function(self, params, ...)
+							params = original_form_parameters(self, params, ...)
+
+							if params and params.body and params.body.generationConfig then
+								params.body.generationConfig.thinkingConfig = nil
+							end
+
+							return params
+						end
+					end
+
+					return adapter
+				end,
+
 				openai = function()
 					return require("codecompanion.adapters").extend("openai", {
 						env = {
@@ -92,31 +180,34 @@ return {
 						},
 						schema = {
 							model = {
-								default = "gpt-4o-mini", -- Cost-efficient token management for blocks
+								default = "gpt-4o-mini",
 							},
 						},
 					})
 				end,
 
-				-- Ported Claude Configuration
 				claude_sonnet = function()
 					return require("codecompanion.adapters").extend("anthropic", {
 						schema = {
-							model = { default = "claude-sonnet-4-20250514" },
+							model = {
+								default = "claude-sonnet-4-20250514",
+							},
 						},
 					})
 				end,
 			},
-			display = {
-				chat = {
-					window = {
-						layout = "vertical",
-						width = 45,
-					},
+		},
+
+		display = {
+			chat = {
+				window = {
+					layout = "vertical",
+					width = 45,
 				},
 			},
 		},
 	},
+
 	config = function(_, opts)
 		require("codecompanion").setup(opts)
 	end,
