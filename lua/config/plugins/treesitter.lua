@@ -33,7 +33,8 @@ return {
 				"graphql",
 				"php",
 				"r",
-				"toml", -- added toml for Cargo.toml
+				"toml",
+				"razor",
 			})
 
 			-- Features are now enabled per-FileType via native Neovim APIs

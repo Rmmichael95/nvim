@@ -9,7 +9,7 @@ return {
 				desc = "dotnet build",
 			},
 			{
-				"<leader>W",
+				"<leader>MW",
 				"<Cmd>OverseerRun dotnet-watch<CR>",
 				desc = "dotnet watch (run/test/build)",
 			},

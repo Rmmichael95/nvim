@@ -80,16 +80,21 @@ map.set("c", "<C-K>", "<C-U>") -- bash like keys for the command line
 
 map.set("c", "cd.", "<Cmd>lcd %:p:h<CR>") -- :cd. change working directory to that of the current file
 
-map.set("n", "<leader>x", function()
-	if vim.bo.filetype == "lua" then
-		vim.cmd("silent! write")
-		vim.cmd("luafile %")
-		vim.notify("Sourced " .. vim.fn.expand("%:t"), vim.log.levels.INFO)
-	elseif vim.bo.filetype == "vim" then
-		vim.cmd("silent! write")
-		vim.cmd("source %")
-	end
-end, { desc = "Execute current file" })
+-- in keymaps.lua, replace the <leader>x block
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = { "lua", "vim" },
+	callback = function()
+		vim.keymap.set("n", "<localleader>x", function()
+			vim.cmd("silent! write")
+			if vim.bo.filetype == "lua" then
+				vim.cmd("luafile %")
+				vim.notify("Sourced " .. vim.fn.expand("%:t"), vim.log.levels.INFO)
+			else
+				vim.cmd("source %")
+			end
+		end, { buffer = true, desc = "Source current file" })
+	end,
+})
 
 -- Very Magic Mode
 -- map.set("c", "/", "/\\v") -- use sane regexes
@@ -183,7 +188,7 @@ map.set("n", "VaB", "vaBV") -- fix linewise visual selection of various text obj
 
 map.set("n", "gI", "``.") -- gi moves to "last place you exited insert mode", map gI to move to last change
 
-map.set("n", "<leader>c", '<Cmd>w! | !compiler "%:p"<CR>')
+map.set("n", "<leader>r", '<Cmd>w! | !compiler "%:p"<CR>', { desc = "Compile / run file" })
 
 -- better up/down
 map.set({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { desc = "Down", expr = true, silent = true })

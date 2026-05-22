@@ -29,9 +29,9 @@ return {
 			"typescript-language-server", -- lang/typescript.lua
 			"vtsls", -- lang/typescript.lua
 			"graphql-language-service-cli", -- lang/graphql.lua
-			"prisma-language-server", -- lang/prisma.lua
 			-- ── LSP — SQL ─────────────────────────────────────────────────────────
-			"sqls", -- lang/sql.lua
+			"sqls", -- lang/db.lua
+			"prisma-language-server", -- lang/db.lua
 			-- ── LSP — web ─────────────────────────────────────────────────────────
 			"css-lsp", -- lang/web.lua
 			"emmet-language-server", -- lang/web.lua
