@@ -304,6 +304,8 @@ return {
 					},
 				})
 			end
+			-- Auto-load launchSettings.json profiles for ASP.NET Core projects
+			require("config.plugins.lsp.cs_launch_settings").setup_autocmd()
 		end,
 	},
 }

@@ -33,7 +33,7 @@ return {
 						},
 					},
 				},
-				broad_search = false,
+				broad_search = true,
 				lock_target = false,
 			})
 		end,

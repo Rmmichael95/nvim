@@ -59,7 +59,9 @@ return {
 					end,
 				},
 				csharpier = {
-					command = "csharpier",
+					command = vim.fn.stdpath("data") .. "/mason/bin/csharpier",
+					args = { "format", "--write-stdout" },
+					stdin = true,
 				},
 				codespell = {
 					command = vim.fn.stdpath("data") .. "/mason/bin/codespell",
@@ -80,6 +82,8 @@ return {
 				cpp = { "clang-format" },
 				css = { "prettier" },
 				cs = { "csharpier" },
+				cshtml = { "csharpier" },
+				razor = { "csharpier" },
 				php = { "phpcbf" },
 				-- php = { "php_cs_fixer" },
 				html = { "prettier" },

@@ -9,6 +9,11 @@ return {
 				desc = "dotnet build",
 			},
 			{
+				"<leader>W",
+				"<Cmd>OverseerRun dotnet-watch<CR>",
+				desc = "dotnet watch (run/test/build)",
+			},
+			{
 				"<leader><CR>",
 				function()
 					local tasks = require("overseer").list_tasks({ recent_first = true })
