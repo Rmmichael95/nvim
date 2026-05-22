@@ -53,24 +53,86 @@ return {
 		},
 	},
 
-	-- Add to lua/config/plugins/mini.lua
+	-- lua/config/plugins/mini.lua  ── mini.ai block ──────────────────────────────
 	{
 		"echasnovski/mini.ai",
 		event = "VeryLazy",
+		dependencies = {
+			-- Provides @function.outer/inner, @class.outer/inner, @conditional.*,
+			-- @loop.* capture groups that gen_spec.treesitter() resolves against.
+			-- Works alongside your neovim-treesitter fork — it only adds .scm query
+			-- files to the runtime path, no module conflicts.
+			"nvim-treesitter/nvim-treesitter-textobjects",
+		},
 		opts = function()
 			local ai = require("mini.ai")
 			return {
+				-- ── CRITICAL: default is 50 ─────────────────────────────────────────
+				-- Anything under this many lines from the cursor is invisible to
+				-- mini.ai. A 60-line C++ method silently falls through to the next
+				-- candidate. 500 covers all realistic function sizes without
+				-- noticeable search latency.
+				n_lines = 500,
+
 				custom_textobjects = {
-					-- Single-char symmetric delimiters  (yi| ci| da| etc.)
+					-- ── Symmetric delimiter pairs ─────────────────────────────────
+					-- REMOVED: ["/"] — greedy pair on "/" fires inside every // comment
+					--   line and Lua/TS string paths. More dangerous than useful.
+					-- REMOVED: [":"] — fights std::, Lua table keys, and TS type
+					--   annotations constantly. Not worth the false-positive rate.
 					["|"] = ai.gen_spec.pair("|", "|", { type = "greedy" }),
-					["/"] = ai.gen_spec.pair("/", "/", { type = "greedy" }),
-					[":"] = ai.gen_spec.pair(":", ":", { type = "greedy" }),
 					["."] = ai.gen_spec.pair(".", ".", { type = "greedy" }),
 					["*"] = ai.gen_spec.pair("*", "*", { type = "greedy" }),
 					["_"] = ai.gen_spec.pair("_", "_", { type = "greedy" }),
 					["\\"] = ai.gen_spec.pair("\\", "\\", { type = "greedy" }),
+
+					-- ── Treesitter: function definition ───────────────────────────
+					-- Overrides mini.ai's built-in 'f' (function *call*) with
+					-- function *definition* — far more useful for edit/nav.
+					--   vif  = select body only (inside braces)
+					--   vaf  = select full def  (return type + signature + body)
+					--   cif  = change body, leave signature intact
+					-- Works across all your TS parsers: C++, Lua, Python, TS, Rust,
+					-- PHP, C#, Zig, R.
+					f = ai.gen_spec.treesitter({
+						a = { "@function.outer" },
+						i = { "@function.inner" },
+					}),
+
+					-- ── Treesitter: class / struct ────────────────────────────────
+					-- 'c' = class or struct body.
+					--   vic  = select members only
+					--   vac  = select full declaration incl. name and specifiers
+					--   dac  = delete the entire class (with confirmation via undo)
+					-- Covers: class (C++/C#/Python/TS/PHP/Rust), struct (C/C++/Rust/Zig),
+					-- table (Lua), module (R).
+					c = ai.gen_spec.treesitter({
+						a = { "@class.outer" },
+						i = { "@class.inner" },
+					}),
+
+					-- ── Treesitter: control-flow block ────────────────────────────
+					-- 'o' = conditional (if/else/switch) or loop (for/while).
+					-- Multiple captures: mini.ai picks the nearest enclosing one.
+					--   vio  = select body (the branch you're inside)
+					--   vao  = select full block including condition/header
+					--   dao  = delete a whole branch/loop cleanly
+					o = ai.gen_spec.treesitter({
+						a = { "@conditional.outer", "@loop.outer" },
+						i = { "@conditional.inner", "@loop.inner" },
+					}),
+
+					-- ── Number literal ────────────────────────────────────────────
+					-- 'D' (Digit) = any contiguous digit sequence.
+					-- Built with a plain pattern spec — no treesitter needed.
+					--   viD  = select the number (e.g. `42`, `3.14`, `0xFF` digits)
+					--   ciD  = change a numeric literal in-place
+					--   yiD  = yank a literal to paste elsewhere
+					-- High-value in C++ (template args, enum values, array sizes),
+					-- CSS/SCSS (px/rem values), SQL (WHERE clauses), config files.
+					D = { "%d+" },
 				},
-				-- Search up to 500 chars for a text object (adjust to taste)
+
 				search_method = "cover_or_next",
 			}
 		end,
