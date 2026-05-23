@@ -16,6 +16,14 @@ return {
 		{ "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = "n", desc = "AI Chat Toggle" },
 		{ "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = "v", desc = "AI Chat with Selection" },
 		{ "<leader>cq", "<cmd>CodeCompanionChat Add<cr>", mode = "v", desc = "Add Selection to Chat" },
+		{
+			"<leader>ap",
+			function()
+				require("codecompanion.prompts.wordpress").open_ollie_pattern_prompt()
+			end,
+			mode = "n",
+			desc = "Claude: Ollie screenshot to pattern",
+		},
 	},
 
 	opts = {
