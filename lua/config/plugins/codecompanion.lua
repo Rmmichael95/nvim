@@ -66,6 +66,10 @@ action = "active_theme"
 			inline = {
 				adapter = "flm",
 			},
+
+			agent = {
+				adapter = "claude_code",
+			},
 		},
 
 		adapters = {
@@ -196,6 +200,15 @@ action = "active_theme"
 					})
 				end,
 			},
+			acp = {
+				claude_code = function()
+					return require("codecompanion.adapters").extend("claude_code", {
+						env = {
+							CLAUDE_CODE_OAUTH_TOKEN = "cmd:echo $CLAUDE_CODE_OAUTH_TOKEN",
+						},
+					})
+				end,
+			},
 		},
 
 		display = {
@@ -209,6 +222,91 @@ action = "active_theme"
 	},
 
 	config = function(_, opts)
+		local uv = vim.uv or vim.loop
+
+		local function path_exists(path)
+			return path and uv.fs_stat(path) ~= nil
+		end
+
+		local function is_wp_root(path)
+			return path
+				and path_exists(path .. "/wp-config.php")
+				and path_exists(path .. "/wp-includes")
+				and path_exists(path .. "/wp-admin")
+		end
+
+		local function dirname(path)
+			if not path or path == "" then
+				return nil
+			end
+
+			path = path:gsub("/+$", "")
+			local parent = path:match("^(.*)/[^/]+$")
+
+			if not parent or parent == "" or parent == path then
+				return nil
+			end
+
+			return parent
+		end
+
+		local function find_wp_root_from(start)
+			if not start or start == "" then
+				return nil
+			end
+
+			start = vim.fn.fnamemodify(start, ":p"):gsub("/+$", "")
+
+			local stat = uv.fs_stat(start)
+			if stat and stat.type == "file" then
+				start = dirname(start)
+			end
+
+			local dir = start
+
+			while dir do
+				if is_wp_root(dir) then
+					return dir
+				end
+
+				local parent = dirname(dir)
+				if not parent or parent == dir then
+					break
+				end
+
+				dir = parent
+			end
+
+			return nil
+		end
+
+		local function remember_wp_root_from(start)
+			local root = find_wp_root_from(start)
+
+			if root then
+				vim.g.wp_cli_path = root
+			end
+		end
+
+		-- Try immediately from current buffer and cwd.
+		remember_wp_root_from(vim.api.nvim_buf_get_name(0))
+		remember_wp_root_from(vim.fn.getcwd())
+
+		-- Keep updating as you move between project files.
+		vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+			group = vim.api.nvim_create_augroup("CodeCompanionWpCliRoot", { clear = true }),
+			callback = function(args)
+				remember_wp_root_from(vim.api.nvim_buf_get_name(args.buf))
+			end,
+		})
+
+		vim.api.nvim_create_autocmd("DirChanged", {
+			group = vim.api.nvim_create_augroup("CodeCompanionWpCliCwd", { clear = true }),
+			callback = function()
+				remember_wp_root_from(vim.fn.getcwd())
+			end,
+		})
+
 		require("codecompanion").setup(opts)
 	end,
 }

@@ -1,8 +1,111 @@
 -- ~/.config/nvim/lua/codecompanion/tools/wp_cli.lua
 
+local uv = vim.uv or vim.loop
+
 local function shell_quote(value)
 	value = tostring(value or "")
 	return "'" .. value:gsub("'", "'\\''") .. "'"
+end
+
+local function path_exists(path)
+	return path and uv.fs_stat(path) ~= nil
+end
+
+local function is_wp_root(path)
+	return path
+		and path_exists(path .. "/wp-config.php")
+		and path_exists(path .. "/wp-includes")
+		and path_exists(path .. "/wp-admin")
+end
+
+local function dirname(path)
+	if not path or path == "" then
+		return nil
+	end
+
+	path = path:gsub("/+$", "")
+	local parent = path:match("^(.*)/[^/]+$")
+
+	if not parent or parent == "" or parent == path then
+		return nil
+	end
+
+	return parent
+end
+
+local function find_wp_root_from(start)
+	if not start or start == "" then
+		return nil
+	end
+
+	local stat = uv.fs_stat(start)
+	if stat and stat.type == "file" then
+		start = dirname(start)
+	end
+
+	local dir = start
+
+	while dir do
+		if is_wp_root(dir) then
+			return dir
+		end
+
+		-- If opened inside a theme/plugin dir, walk up past wp-content.
+		if path_exists(dir .. "/wp-content") and path_exists(dir .. "/wp-includes") then
+			return dir
+		end
+
+		local parent = dirname(dir)
+		if not parent or parent == dir then
+			break
+		end
+
+		dir = parent
+	end
+
+	return nil
+end
+
+local function detect_wp_root()
+	-- 0. Explicit/global path remembered by Neovim config.
+	local configured = vim.g.wp_cli_path or vim.env.WP_CLI_PATH
+
+	if configured and configured ~= "" then
+		local root = find_wp_root_from(configured)
+		if root then
+			return root
+		end
+	end
+
+	-- 1. Current buffer file path.
+	local bufname = vim.api.nvim_buf_get_name(0)
+	local root = find_wp_root_from(bufname)
+	if root then
+		return root
+	end
+
+	-- 2. Current Neovim cwd.
+	root = find_wp_root_from(vim.fn.getcwd())
+	if root then
+		return root
+	end
+
+	-- 3. Current file's directory via expand fallback.
+	root = find_wp_root_from(vim.fn.expand("%:p:h"))
+	if root then
+		return root
+	end
+
+	return nil
+end
+local function wp_prefix()
+	local root = detect_wp_root()
+
+	if not root then
+		return "printf '%s\n' 'ERROR: Could not detect WordPress root. Open Neovim inside the WordPress install, or set vim.g.wp_cli_path to the WP root.'"
+	end
+
+	return "WP_CLI_PHP_ARGS='-d display_errors=stderr -d error_reporting=E_ERROR' wp --path=" .. shell_quote(root)
 end
 
 local block_overrides_audit_php = [[
@@ -45,7 +148,7 @@ $data = array(
 	"wp_is_block_theme" => function_exists("wp_is_block_theme") ? wp_is_block_theme() : null,
 	"has_get_block_templates_function" => function_exists("get_block_templates"),
 	"has_get_block_template_function" => function_exists("get_block_template"),
-	"has_resolve_block_template_function" => function_exists("resolve_block_template"),
+	"has_resolve_block_template_function" => function_exists("resolve_block_template")
 );
 
 echo wp_json_encode($data, JSON_PRETTY_PRINT);
@@ -58,7 +161,7 @@ return {
 	description = "Run approved WP-CLI checks against the current local WordPress site.",
 
 	system_prompt = [[
-This tool runs WP-CLI in the current Neovim working directory.
+This tool runs WP-CLI against the detected WordPress root.
 
 Use this tool whenever the user asks about:
 - active WordPress theme
@@ -108,25 +211,30 @@ Rules:
 
 	build_cmd = function(args)
 		local action = args.action or ""
+		local wp = wp_prefix()
+
+		if wp:match("^printf") then
+			return wp
+		end
 
 		if action == "active_theme" then
-			return "wp theme list --status=active --format=json"
+			return wp .. " theme list --status=active --format=json"
 		end
 
 		if action == "theme_list" then
-			return "wp theme list --format=json"
+			return wp .. " theme list --format=json"
 		end
 
 		if action == "plugin_list" then
-			return "wp plugin list --format=json"
+			return wp .. " plugin list --format=json"
 		end
 
 		if action == "core_version" then
-			return "wp core version"
+			return wp .. " core version"
 		end
 
 		if action == "block_overrides_audit" then
-			return "wp eval " .. shell_quote(block_overrides_audit_php)
+			return wp .. " eval " .. shell_quote(block_overrides_audit_php)
 		end
 
 		if action == "raw" then
@@ -145,7 +253,7 @@ Rules:
 				return "printf '%s\n' 'ERROR: Refusing shell metacharacters in WP-CLI query.'"
 			end
 
-			return "wp " .. query
+			return wp .. " " .. query
 		end
 
 		return "printf '%s\n' 'ERROR: Unknown wp_cli action.'"
