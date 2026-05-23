@@ -107,14 +107,6 @@ return {
 					keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, o)
 
 					if client and client:supports_method("textDocument/rename") then
-						keymap.set(
-							"n",
-							"<leader>rn",
-							vim.lsp.buf.rename,
-							vim.tbl_extend("force", o, { desc = "Smart rename" })
-						)
-					end
-					if client and client:supports_method("textDocument/rename") then
 						keymap.set("n", "<leader>rn", function()
 							-- Use IncRename if loaded (provides live preview), fall back to
 							-- vim.lsp.buf.rename if inc-rename.nvim hasn't initialised yet.
