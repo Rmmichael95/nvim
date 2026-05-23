@@ -41,6 +41,14 @@ return {
 			desc = "Dhali: make part",
 		},
 		{
+			"<leader>wmc",
+			function()
+				require("codecompanion.prompts.wordpress").open_wp_mcp_context_sync_prompt()
+			end,
+			mode = "n",
+			desc = "WP MCP Context Sync",
+		},
+		{
 			"<leader>ap",
 			function()
 				require("codecompanion.prompts.wordpress").open_ollie_pattern_prompt()
