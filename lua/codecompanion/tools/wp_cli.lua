@@ -192,6 +192,436 @@ $data = array(
 echo wp_json_encode($data, JSON_PRETTY_PRINT);
 ]]
 
+local content_inventory_audit_php = [[
+global $wpdb;
+
+function cc_count_statuses_for_post_type($post_type) {
+	$counts = wp_count_posts($post_type);
+	$out = array();
+
+	foreach (get_post_stati() as $status) {
+		$out[$status] = isset($counts->{$status}) ? (int) $counts->{$status} : 0;
+	}
+
+	return $out;
+}
+
+function cc_sample_posts_for_type($post_type, $limit = 10) {
+	$posts = get_posts(array(
+		'post_type'      => $post_type,
+		'post_status'    => array('publish', 'draft', 'private', 'pending', 'future'),
+		'posts_per_page' => $limit,
+		'orderby'        => 'modified',
+		'order'          => 'DESC',
+	));
+
+	return array_map(function($post) {
+		return array(
+			'ID'            => (int) $post->ID,
+			'post_title'    => get_the_title($post),
+			'post_name'     => $post->post_name,
+			'post_status'   => $post->post_status,
+			'post_type'     => $post->post_type,
+			'post_date'     => $post->post_date,
+			'post_modified' => $post->post_modified,
+			'content_chars' => strlen(wp_strip_all_tags($post->post_content)),
+		);
+	}, $posts);
+}
+
+$public_post_types = get_post_types(array('public' => true), 'names');
+
+// Always include key WordPress content types, even if something filtered public post types.
+$content_post_types = array_values(array_unique(array_merge(
+	array('post', 'page', 'attachment', 'wp_navigation'),
+	array_values($public_post_types)
+)));
+
+$post_type_counts = array();
+$samples = array();
+
+foreach ($content_post_types as $post_type) {
+	if (!post_type_exists($post_type)) {
+		continue;
+	}
+
+	$post_type_counts[$post_type] = cc_count_statuses_for_post_type($post_type);
+
+	if ($post_type !== 'attachment') {
+		$samples[$post_type] = cc_sample_posts_for_type($post_type, 10);
+	}
+}
+
+$published_posts = isset($post_type_counts['post']['publish']) ? (int) $post_type_counts['post']['publish'] : 0;
+$published_pages = isset($post_type_counts['page']['publish']) ? (int) $post_type_counts['page']['publish'] : 0;
+$attachments     = isset($post_type_counts['attachment']['inherit']) ? (int) $post_type_counts['attachment']['inherit'] : 0;
+
+$default_slugs = array('hello-world', 'sample-page', 'privacy-policy');
+$found_default_slugs = array();
+
+foreach ($default_slugs as $slug) {
+	$found = get_page_by_path($slug, OBJECT, array('post', 'page'));
+
+	if ($found) {
+		$found_default_slugs[] = array(
+			'ID'          => (int) $found->ID,
+			'post_title'  => get_the_title($found),
+			'post_name'   => $found->post_name,
+			'post_type'   => $found->post_type,
+			'post_status' => $found->post_status,
+		);
+	}
+}
+
+$content_types_for_sql = array_values(array_filter($content_post_types, function($type) {
+	return $type !== 'attachment';
+}));
+
+$escaped_types = array_map('esc_sql', $content_types_for_sql);
+$type_list_sql = "'" . implode("','", $escaped_types) . "'";
+
+$total_content_chars = (int) $wpdb->get_var("
+	SELECT COALESCE(SUM(CHAR_LENGTH(post_content)), 0)
+	FROM {$wpdb->posts}
+	WHERE post_type IN ({$type_list_sql})
+	AND post_status NOT IN ('auto-draft', 'trash', 'inherit')
+");
+
+$total_non_attachment_content = (int) $wpdb->get_var("
+	SELECT COUNT(*)
+	FROM {$wpdb->posts}
+	WHERE post_type IN ({$type_list_sql})
+	AND post_status NOT IN ('auto-draft', 'trash', 'inherit')
+");
+
+$latest_modified = $wpdb->get_var("
+	SELECT MAX(post_modified)
+	FROM {$wpdb->posts}
+	WHERE post_type IN ({$type_list_sql})
+	AND post_status NOT IN ('auto-draft', 'trash', 'inherit')
+");
+
+$terms = array(
+	'category_count' => taxonomy_exists('category') ? (int) wp_count_terms(array('taxonomy' => 'category', 'hide_empty' => false)) : null,
+	'post_tag_count' => taxonomy_exists('post_tag') ? (int) wp_count_terms(array('taxonomy' => 'post_tag', 'hide_empty' => false)) : null,
+);
+
+$nav_menu_terms = taxonomy_exists('nav_menu')
+	? get_terms(array('taxonomy' => 'nav_menu', 'hide_empty' => false))
+	: array();
+
+$menus = array_map(function($term) {
+	return array(
+		'term_id' => (int) $term->term_id,
+		'name'    => $term->name,
+		'slug'    => $term->slug,
+		'count'   => (int) $term->count,
+	);
+}, is_wp_error($nav_menu_terms) ? array() : $nav_menu_terms);
+
+$signals = array();
+
+if ($published_pages >= 3) {
+	$signals[] = 'Has 3 or more published pages.';
+}
+
+if ($published_posts >= 2) {
+	$signals[] = 'Has 2 or more published posts.';
+}
+
+if ($attachments >= 5) {
+	$signals[] = 'Has 5 or more media attachments.';
+}
+
+if ($total_content_chars >= 5000) {
+	$signals[] = 'Has substantial stored post/page content.';
+}
+
+if (count($menus) > 0 || (isset($post_type_counts['wp_navigation']['publish']) && $post_type_counts['wp_navigation']['publish'] > 0)) {
+	$signals[] = 'Has navigation/menu data.';
+}
+
+if (count($found_default_slugs) > 0) {
+	$signals[] = 'Default WordPress slugs are present.';
+}
+
+$looks_defaultish =
+	$published_pages <= 1
+	&& $published_posts <= 1
+	&& $attachments <= 1
+	&& $total_content_chars < 2500
+	&& count($found_default_slugs) > 0;
+
+$looks_empty =
+	$total_non_attachment_content === 0
+	|| (
+		$published_pages === 0
+		&& $published_posts === 0
+		&& $attachments === 0
+	);
+
+if ($looks_empty) {
+	$verdict = 'empty_or_missing_content';
+	$confidence = 'high';
+} elseif ($looks_defaultish) {
+	$verdict = 'possibly_default_install';
+	$confidence = 'high';
+} elseif ($published_pages >= 3 || $published_posts >= 2 || $attachments >= 5 || $total_content_chars >= 5000) {
+	$verdict = 'likely_real_site';
+	$confidence = 'medium';
+} else {
+	$verdict = 'inconclusive_small_site';
+	$confidence = 'medium';
+}
+
+$data = array(
+	'site' => array(
+		'name'        => get_bloginfo('name'),
+		'url'         => home_url('/'),
+		'wp_version'  => get_bloginfo('version'),
+		'table_prefix'=> $wpdb->prefix,
+	),
+	'verdict' => array(
+		'status'     => $verdict,
+		'confidence' => $confidence,
+		'signals'    => $signals,
+	),
+	'summary' => array(
+		'published_posts'              => $published_posts,
+		'published_pages'              => $published_pages,
+		'attachments'                  => $attachments,
+		'total_non_attachment_content' => $total_non_attachment_content,
+		'total_content_chars'          => $total_content_chars,
+		'latest_modified'              => $latest_modified,
+	),
+	'post_type_counts' => $post_type_counts,
+	'default_install_fingerprints' => array(
+		'checked_slugs' => $default_slugs,
+		'found'         => $found_default_slugs,
+	),
+	'terms' => $terms,
+	'menus' => $menus,
+	'samples' => $samples,
+);
+
+echo wp_json_encode($data, JSON_PRETTY_PRINT);
+]]
+
+local content_inventory_audit_php = [[
+global $wpdb;
+
+function cc_count_statuses_for_post_type($post_type) {
+	$counts = wp_count_posts($post_type);
+	$out = array();
+
+	foreach (get_post_stati() as $status) {
+		$out[$status] = isset($counts->{$status}) ? (int) $counts->{$status} : 0;
+	}
+
+	return $out;
+}
+
+function cc_sample_posts_for_type($post_type, $limit = 10) {
+	$posts = get_posts(array(
+		'post_type'      => $post_type,
+		'post_status'    => array('publish', 'draft', 'private', 'pending', 'future'),
+		'posts_per_page' => $limit,
+		'orderby'        => 'modified',
+		'order'          => 'DESC',
+	));
+
+	return array_map(function($post) {
+		return array(
+			'ID'            => (int) $post->ID,
+			'post_title'    => get_the_title($post),
+			'post_name'     => $post->post_name,
+			'post_status'   => $post->post_status,
+			'post_type'     => $post->post_type,
+			'post_date'     => $post->post_date,
+			'post_modified' => $post->post_modified,
+			'content_chars' => strlen(wp_strip_all_tags($post->post_content)),
+		);
+	}, $posts);
+}
+
+$public_post_types = get_post_types(array('public' => true), 'names');
+
+// Always include key WordPress content types, even if something filtered public post types.
+$content_post_types = array_values(array_unique(array_merge(
+	array('post', 'page', 'attachment', 'wp_navigation'),
+	array_values($public_post_types)
+)));
+
+$post_type_counts = array();
+$samples = array();
+
+foreach ($content_post_types as $post_type) {
+	if (!post_type_exists($post_type)) {
+		continue;
+	}
+
+	$post_type_counts[$post_type] = cc_count_statuses_for_post_type($post_type);
+
+	if ($post_type !== 'attachment') {
+		$samples[$post_type] = cc_sample_posts_for_type($post_type, 10);
+	}
+}
+
+$published_posts = isset($post_type_counts['post']['publish']) ? (int) $post_type_counts['post']['publish'] : 0;
+$published_pages = isset($post_type_counts['page']['publish']) ? (int) $post_type_counts['page']['publish'] : 0;
+$attachments     = isset($post_type_counts['attachment']['inherit']) ? (int) $post_type_counts['attachment']['inherit'] : 0;
+
+$default_slugs = array('hello-world', 'sample-page', 'privacy-policy');
+$found_default_slugs = array();
+
+foreach ($default_slugs as $slug) {
+	$found = get_page_by_path($slug, OBJECT, array('post', 'page'));
+
+	if ($found) {
+		$found_default_slugs[] = array(
+			'ID'          => (int) $found->ID,
+			'post_title'  => get_the_title($found),
+			'post_name'   => $found->post_name,
+			'post_type'   => $found->post_type,
+			'post_status' => $found->post_status,
+		);
+	}
+}
+
+$content_types_for_sql = array_values(array_filter($content_post_types, function($type) {
+	return $type !== 'attachment';
+}));
+
+$escaped_types = array_map('esc_sql', $content_types_for_sql);
+$type_list_sql = "'" . implode("','", $escaped_types) . "'";
+
+$total_content_chars = (int) $wpdb->get_var("
+	SELECT COALESCE(SUM(CHAR_LENGTH(post_content)), 0)
+	FROM {$wpdb->posts}
+	WHERE post_type IN ({$type_list_sql})
+	AND post_status NOT IN ('auto-draft', 'trash', 'inherit')
+");
+
+$total_non_attachment_content = (int) $wpdb->get_var("
+	SELECT COUNT(*)
+	FROM {$wpdb->posts}
+	WHERE post_type IN ({$type_list_sql})
+	AND post_status NOT IN ('auto-draft', 'trash', 'inherit')
+");
+
+$latest_modified = $wpdb->get_var("
+	SELECT MAX(post_modified)
+	FROM {$wpdb->posts}
+	WHERE post_type IN ({$type_list_sql})
+	AND post_status NOT IN ('auto-draft', 'trash', 'inherit')
+");
+
+$terms = array(
+	'category_count' => taxonomy_exists('category') ? (int) wp_count_terms(array('taxonomy' => 'category', 'hide_empty' => false)) : null,
+	'post_tag_count' => taxonomy_exists('post_tag') ? (int) wp_count_terms(array('taxonomy' => 'post_tag', 'hide_empty' => false)) : null,
+);
+
+$nav_menu_terms = taxonomy_exists('nav_menu')
+	? get_terms(array('taxonomy' => 'nav_menu', 'hide_empty' => false))
+	: array();
+
+$menus = array_map(function($term) {
+	return array(
+		'term_id' => (int) $term->term_id,
+		'name'    => $term->name,
+		'slug'    => $term->slug,
+		'count'   => (int) $term->count,
+	);
+}, is_wp_error($nav_menu_terms) ? array() : $nav_menu_terms);
+
+$signals = array();
+
+if ($published_pages >= 3) {
+	$signals[] = 'Has 3 or more published pages.';
+}
+
+if ($published_posts >= 2) {
+	$signals[] = 'Has 2 or more published posts.';
+}
+
+if ($attachments >= 5) {
+	$signals[] = 'Has 5 or more media attachments.';
+}
+
+if ($total_content_chars >= 5000) {
+	$signals[] = 'Has substantial stored post/page content.';
+}
+
+if (count($menus) > 0 || (isset($post_type_counts['wp_navigation']['publish']) && $post_type_counts['wp_navigation']['publish'] > 0)) {
+	$signals[] = 'Has navigation/menu data.';
+}
+
+if (count($found_default_slugs) > 0) {
+	$signals[] = 'Default WordPress slugs are present.';
+}
+
+$looks_defaultish =
+	$published_pages <= 1
+	&& $published_posts <= 1
+	&& $attachments <= 1
+	&& $total_content_chars < 2500
+	&& count($found_default_slugs) > 0;
+
+$looks_empty =
+	$total_non_attachment_content === 0
+	|| (
+		$published_pages === 0
+		&& $published_posts === 0
+		&& $attachments === 0
+	);
+
+if ($looks_empty) {
+	$verdict = 'empty_or_missing_content';
+	$confidence = 'high';
+} elseif ($looks_defaultish) {
+	$verdict = 'possibly_default_install';
+	$confidence = 'high';
+} elseif ($published_pages >= 3 || $published_posts >= 2 || $attachments >= 5 || $total_content_chars >= 5000) {
+	$verdict = 'likely_real_site';
+	$confidence = 'medium';
+} else {
+	$verdict = 'inconclusive_small_site';
+	$confidence = 'medium';
+}
+
+$data = array(
+	'site' => array(
+		'name'        => get_bloginfo('name'),
+		'url'         => home_url('/'),
+		'wp_version'  => get_bloginfo('version'),
+		'table_prefix'=> $wpdb->prefix,
+	),
+	'verdict' => array(
+		'status'     => $verdict,
+		'confidence' => $confidence,
+		'signals'    => $signals,
+	),
+	'summary' => array(
+		'published_posts'              => $published_posts,
+		'published_pages'              => $published_pages,
+		'attachments'                  => $attachments,
+		'total_non_attachment_content' => $total_non_attachment_content,
+		'total_content_chars'          => $total_content_chars,
+		'latest_modified'              => $latest_modified,
+	),
+	'post_type_counts' => $post_type_counts,
+	'default_install_fingerprints' => array(
+		'checked_slugs' => $default_slugs,
+		'found'         => $found_default_slugs,
+	),
+	'terms' => $terms,
+	'menus' => $menus,
+	'samples' => $samples,
+);
+
+echo wp_json_encode($data, JSON_PRETTY_PRINT);
+]]
+
 return {
 	extends = "cmd_tool",
 
@@ -213,6 +643,9 @@ Use this tool whenever the user asks about:
 - Font Library (wp_font_face / wp_font_family)
 - REST API namespaces registered on this install
 - WordPress environment state
+- content_inventory_audit — checks whether the database contains real pages/posts/media/navigation or looks like a fresh/default install
+- verifying whether a restored/imported database contains real WordPress content
+- checking if the database looks like a fresh/default WordPress install
 
 Action reference:
 - block_overrides_audit  — comprehensive WP 7 readiness check (block bindings, interactivity API,
@@ -246,6 +679,7 @@ Rules:
 					"plugin_list",
 					"core_version",
 					"block_overrides_audit",
+					"content_inventory_audit",
 					"templates_list",
 					"template_parts_list",
 					"synced_patterns_list",
@@ -293,12 +727,17 @@ Rules:
 			return wp .. " eval " .. shell_quote(block_overrides_audit_php)
 		end
 
+		if action == "content_inventory_audit" then
+			return wp .. " eval " .. shell_quote(content_inventory_audit_php)
+		end
+
 		if action == "templates_list" then
 			return wp .. " post list --post_type=wp_template --fields=ID,post_title,post_name,post_status --format=json"
 		end
 
 		if action == "template_parts_list" then
-			return wp .. " post list --post_type=wp_template_part --fields=ID,post_title,post_name,post_status --format=json"
+			return wp
+				.. " post list --post_type=wp_template_part --fields=ID,post_title,post_name,post_status --format=json"
 		end
 
 		if action == "synced_patterns_list" then
@@ -306,7 +745,8 @@ Rules:
 		end
 
 		if action == "global_styles_get" then
-			local php = "echo wp_json_encode( array( 'stylesheet' => wp_get_global_stylesheet(), 'variables' => wp_get_global_settings() ), JSON_PRETTY_PRINT );"
+			local php =
+				"echo wp_json_encode( array( 'stylesheet' => wp_get_global_stylesheet(), 'variables' => wp_get_global_settings() ), JSON_PRETTY_PRINT );"
 			return wp .. " eval " .. shell_quote(php)
 		end
 

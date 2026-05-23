@@ -17,6 +17,30 @@ return {
 		{ "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", mode = "v", desc = "AI Chat with Selection" },
 		{ "<leader>cq", "<cmd>CodeCompanionChat Add<cr>", mode = "v", desc = "Add Selection to Chat" },
 		{
+			"<leader>adp",
+			function()
+				require("codecompanion.prompts.dhali").open_dhali_pattern_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: make pattern",
+		},
+		{
+			"<leader>adt",
+			function()
+				require("codecompanion.prompts.dhali").open_dhali_template_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: make template",
+		},
+		{
+			"<leader>adr",
+			function()
+				require("codecompanion.prompts.dhali").open_dhali_part_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: make part",
+		},
+		{
 			"<leader>ap",
 			function()
 				require("codecompanion.prompts.wordpress").open_ollie_pattern_prompt()
@@ -24,16 +48,27 @@ return {
 			mode = "n",
 			desc = "Claude: Ollie screenshot to pattern",
 		},
+		{
+			"<leader>ad",
+			function()
+				require("codecompanion.prompts.wordpress").open_wp_database_content_audit_prompt()
+			end,
+			mode = "n",
+			desc = "Claude: WP database content audit",
+		},
 	},
 
 	opts = {
 		interactions = {
 			chat = {
 				adapter = "gemini",
-
 				system_prompt = function(ctx)
 					return require("codecompanion.prompts.wordpress").chat_system_prompt(ctx)
+						.. require("codecompanion.prompts.dhali").chat_system_prompt_addon
 				end,
+				-- system_prompt = function(ctx)
+				-- 	return require("codecompanion.prompts.wordpress").chat_system_prompt(ctx)
+				-- end,
 
 				tools = {
 					["wp_cli"] = {

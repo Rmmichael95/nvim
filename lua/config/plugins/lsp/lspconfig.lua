@@ -114,6 +114,29 @@ return {
 							vim.tbl_extend("force", o, { desc = "Smart rename" })
 						)
 					end
+					if client and client:supports_method("textDocument/rename") then
+						keymap.set("n", "<leader>rn", function()
+							-- Use IncRename if loaded (provides live preview), fall back to
+							-- vim.lsp.buf.rename if inc-rename.nvim hasn't initialised yet.
+							local ok, inc_rename = pcall(require, "inc_rename")
+							if ok and inc_rename then
+								-- expr = true is set on the global keymap in inc-rename.lua;
+								-- calling it imperatively here avoids double-escaping.
+								vim.api.nvim_feedkeys(
+									vim.api.nvim_replace_termcodes(
+										":IncRename " .. vim.fn.expand("<cword>"),
+										true,
+										false,
+										true
+									),
+									"n",
+									false
+								)
+							else
+								vim.lsp.buf.rename()
+							end
+						end, vim.tbl_extend("force", o, { desc = "Rename symbol (live preview)" }))
+					end
 					if client and client:supports_method("textDocument/codeAction") then
 						keymap.set(
 							{ "n", "v" },

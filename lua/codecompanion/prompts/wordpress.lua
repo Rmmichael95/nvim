@@ -19,6 +19,8 @@ A WordPress tool (@wp_cli) is available. Use it proactively whenever the user as
 - Font Library (wp_font_face, wp_font_family)
 - REST API namespaces or registered endpoints (use rest_api_namespaces)
 - Any WP-CLI output the user wants without running it themselves
+- Database restore/import verification
+- Checking whether the database contains real pages/posts/media or only a fresh/default install
 
 Do not print WP-CLI commands and ask the user to run them.
 Do not guess WordPress state or invent command output.
@@ -35,6 +37,7 @@ Action quick-reference:
   global_styles_get        — compiled global stylesheet + settings from theme.json
   rest_api_namespaces      — all REST namespaces registered on this install
   raw                      — arbitrary WP-CLI subcommand, no leading "wp"
+  content_inventory_audit  — verify restored DB has real site content, not just default install content
 ]]
 end
 
@@ -63,6 +66,52 @@ Do not write files until I approve.
 
 M.open_ollie_pattern_prompt = function()
 	require("codecompanion").cli(M.ollie_pattern_prompt, {
+		agent = "claude_code",
+		submit = false,
+		focus = true,
+	})
+end
+
+M.wp_database_content_audit_prompt = [[
+Use the @wp_cli tool with action content_inventory_audit.
+
+Goal:
+Verify whether the current WordPress database contains real site content or appears to be a fresh/default WordPress install.
+
+Interpret the result carefully.
+
+Report:
+1. Verdict:
+   - likely_real_site
+   - possibly_default_install
+   - empty_or_missing_content
+   - inconclusive_small_site
+
+2. Evidence:
+   - published page count
+   - published post count
+   - media attachment count
+   - public/custom post type counts
+   - total content character count
+   - navigation/menu presence
+   - default WordPress slugs found, such as hello-world, sample-page, privacy-policy
+
+3. Samples:
+   - show representative page/post titles and slugs
+   - point out whether the titles look like real client/site content or default/demo content
+
+4. Final recommendation:
+   - safe to proceed
+   - investigate before proceeding
+   - likely wrong/empty database
+
+Do not assume the database is valid just because WordPress loads.
+Do not rely only on wp_posts row count.
+A valid migrated database should usually have meaningful pages, posts, media, menus, CPT content, or edited content length.
+]]
+
+M.open_wp_database_content_audit_prompt = function()
+	require("codecompanion").cli(M.wp_database_content_audit_prompt, {
 		agent = "claude_code",
 		submit = false,
 		focus = true,
