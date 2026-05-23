@@ -48,6 +48,9 @@ return {
 			svelte = { "eslint_d" },
 			php = { "phpcs" },
 			python = { "pylint" },
+			sh = { "shellcheck" },
+			bash = { "shellcheck" },
+			zsh = { "shellcheck" },
 			["*"] = { "codespell" },
 		}
 

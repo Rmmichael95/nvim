@@ -63,6 +63,7 @@ return {
 			"stylua", -- conform.lua (lua)
 			"isort", -- conform.lua (python)
 			"black", -- conform.lua (python)
+			"zigfmt",
 			-- ── nvim-lint ─────────────────────────────────────────────────────────
 			"codespell", -- nvim-lint.lua (*)
 			"cpplint", -- nvim-lint.lua (c, cpp)
@@ -71,6 +72,7 @@ return {
 			"phpcs", -- nvim-lint.lua (php)
 			"markdownlint-cli2", -- nvim-lint.lua (markdown), conform.lua (markdown)
 			"markdown-toc", -- conform.lua (markdown)
+			"shellcheck",
 		},
 	},
 	config = function(_, opts)

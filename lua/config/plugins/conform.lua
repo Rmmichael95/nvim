@@ -97,6 +97,8 @@ return {
 				lua = { "stylua" },
 				python = { "isort", "black" },
 				sh = { "shfmt" },
+				zig = { "zigfmt" },
+				r = {},
 				["_"] = { "trim_whitespace" },
 			},
 			format_on_save = {

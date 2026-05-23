@@ -1,3 +1,4 @@
+-- lua/config/plugins/neotest.lua
 return {
 	{
 		"nvim-neotest/neotest",
@@ -8,6 +9,8 @@ return {
 			"olimorris/neotest-phpunit",
 			"marilari88/neotest-vitest",
 			"nvim-neotest/neotest-jest",
+			"nvim-neotest/neotest-python", -- ADD: pytest / unittest
+			"rouge8/neotest-rust", -- ADD: cargo test (#[test])
 		},
 		keys = {
 			{
@@ -109,6 +112,34 @@ return {
 					require("neotest-phpunit"),
 					require("neotest-vitest"),
 					require("neotest-jest"),
+
+					-- ADD: Python — auto-detects pytest vs unittest from project config.
+					-- Respects .venv / venv virtual envs via the same pythonPath
+					-- resolution logic used in dap.lua.
+					require("neotest-python")({
+						dap = { justMyCode = false },
+						-- Use the venv python if present, otherwise fall back to system.
+						python = function()
+							local venv = vim.fn.getcwd() .. "/.venv/bin/python"
+							if vim.fn.executable(venv) == 1 then
+								return venv
+							end
+							venv = vim.fn.getcwd() .. "/venv/bin/python"
+							if vim.fn.executable(venv) == 1 then
+								return venv
+							end
+							return vim.fn.exepath("python3") or "python"
+						end,
+						-- Show stdout (print() calls) in the output panel.
+						pytest_discover_instances = true,
+					}),
+
+					-- ADD: Rust — discovers #[test] and #[tokio::test] functions.
+					-- Uses cargo test under the hood; codelldb handles <leader>td debug.
+					require("neotest-rust")({
+						args = { "--no-capture" },
+						dap_adapter = "codelldb",
+					}),
 				},
 				run = { enabled = true },
 				running = { concurrent = true },

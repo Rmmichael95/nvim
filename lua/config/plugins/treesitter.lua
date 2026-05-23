@@ -32,6 +32,7 @@ return {
 				"tsx",
 				"graphql",
 				"php",
+				"perl",
 				"r",
 				"toml",
 				"razor",
