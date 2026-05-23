@@ -23,28 +23,9 @@ return {
 			chat = {
 				adapter = "gemini",
 
-				opts = {
-					system_prompt = function(ctx)
-						return ctx.default_system_prompt
-							.. [[
-
-Additional WordPress tooling instructions:
-
-A WordPress tool is available. Use it whenever the user asks about the current WordPress install, active theme, installed themes, plugins, WordPress options, WordPress 7 readiness, block theme support, theme.json, templates, template parts, block overrides, or WP-CLI output.
-
-Do not print WP-CLI commands and ask the user to run them.
-Do not guess WordPress state.
-Do not invent command output.
-Use the available tool to gather the information first.
-
-For block override readiness, use the WordPress tool with:
-action = "block_overrides_audit"
-
-For active theme checks, use:
-action = "active_theme"
-]]
-					end,
-				},
+				system_prompt = function(ctx)
+					return require("codecompanion.prompts.wordpress").chat_system_prompt(ctx)
+				end,
 
 				tools = {
 					["wp_cli"] = {
@@ -69,6 +50,16 @@ action = "active_theme"
 
 			agent = {
 				adapter = "claude_code",
+
+				tools = {
+					["wp_cli"] = {
+						description = "Run approved WP-CLI checks against the current local WordPress site.",
+						opts = {
+							require_approval_before = true,
+						},
+						path = "~/.config/nvim/lua/codecompanion/tools/wp_cli.lua",
+					},
+				},
 			},
 		},
 
@@ -200,6 +191,7 @@ action = "active_theme"
 					})
 				end,
 			},
+
 			acp = {
 				claude_code = function()
 					return require("codecompanion.adapters").extend("claude_code", {

@@ -2,81 +2,84 @@
 --
 -- Per-line, context-aware commenter for mixed-language files (PHP/HTML, etc.)
 --
--- ── Root cause of previous failures ─────────────────────────────────────────
--- Two successive strategies failed for WordPress PHP template files:
+-- ── Why treesitter is not used for PHP ──────────────────────────────────────
+-- Two prior strategies failed:
+--   cursor_pos  → unrecognised option, silently ignored; cursor position used
+--                 for every line → every line got same commentstring.
+--   location    → treesitter injection boundaries are byte offsets, not line
+--                 boundaries; language_for_range misclassified lines near PHP/
+--                 HTML transitions.
+-- The PHP filetype now uses a simple <?php / ?> tag scanner instead.
 --
---   1. ts_context_commentstring({ cursor_pos = ... })  — `cursor_pos` is not a
---      recognised option; the plugin silently ignored it and always used the real
---      cursor position, so every line got the same commentstring.
+-- ── Standalone PHP tag rule ──────────────────────────────────────────────────
+-- Lines that are ONLY a PHP structural tag (<?php, <?=, ?>) are left unchanged.
+-- Two insoluble PHP spec constraints make it impossible to comment them:
 --
---   2. ts_context_commentstring({ location = ... }) +
---      parser:language_for_range()  — both query the treesitter parse-tree
---      injection BOUNDARIES, which do not align cleanly with Neovim line
---      numbers in PHP template files (injected HTML ranges start/end at byte
---      offsets, not line starts).  HTML lines near a boundary were misclassified
---      as PHP and vice-versa.
+--   <!-- <?php --> causes a syntax error: PHP ignores HTML comments, enters PHP
+--                  mode on <?php, then sees " -->" as invalid PHP code.
 --
--- ── Solution for PHP files ───────────────────────────────────────────────────
--- Scan from line 1, track <?php / ?> state, record which line STARTS inside a
--- PHP block.  O(n) once per toggle call.  Deterministic, no treesitter needed.
+--   // ?>          does NOT suppress the close tag: per the PHP manual, ?>
+--                  "breaks out of PHP mode" even when preceded by //
+--                  ("// or # cannot influence that").
 --
---   PHP context  (line starts inside an unclosed <?php … block) → "// %s"
---   HTML context (line is in template space between PHP tags)   → "<!-- %s -->"
+-- Leaving structural tags in place is semantically correct. Standalone <?php
+-- and ?> carry no logic — they are just mode-switch markers.  The PHP code
+-- BETWEEN them is disabled by // comments, leaving an empty PHP block that
+-- does nothing.
 --
--- ── Solution for other mixed files ──────────────────────────────────────────
--- Fall through to ts_context_commentstring (location option) then
--- language_for_range, then vim.bo.commentstring.  These work fine for files
--- where injections are first-class (blade, JSX, etc.).
---
--- ── Usage (from an ftplugin) ─────────────────────────────────────────────────
+-- ── Usage ────────────────────────────────────────────────────────────────────
 --   require("config.core.lib.mixed_comment").setup_buf_keymaps()
 
 local M = {}
 
+-- ── Standalone PHP tag detection ─────────────────────────────────────────────
+
+--- True when the line's only content is a PHP open or close tag.
+--- These lines are skipped entirely during comment/uncomment (see module header).
+local function is_php_tag_only(line)
+	local t = vim.trim(line)
+	-- Match: <?php, <?=, or ?> with nothing else on the line.
+	return t == "<?php" or t == "<?=" or t == "?>"
+end
+
 -- ── PHP context scanner ───────────────────────────────────────────────────────
 
 --- Walk lines 1..end_lnum once, tracking <?php / ?> transitions.
---- Returns: php_ctx[lnum] = true  →  line STARTS in PHP context
----          php_ctx[lnum] = false →  line STARTS in HTML template context
+--- Returns php_ctx[lnum] = true  when that line STARTS in PHP context.
 ---
---- "Starts in PHP context" means we have seen a <?php or <?= that has not yet
---- been closed by a matching ?>.  Standalone template lines like
----     <?php if ( have_posts() ) : ?>
---- START in HTML context (in_php = false when we reach that line) because the
---- <?php that opens them is on the SAME line, so context_map[lnum] is snapshot
---- BEFORE we process that line's tags.  They get <!-- -->, which is appropriate:
---- HTML comments wrap the whole template-PHP tag cleanly.
+--- "Starts in PHP context" = an unclosed <?php or <?= tag has been seen before
+--- this line, with no intervening ?>.
 ---
---- Lines that are purely inside an open PHP block (e.g. the body of a loop or
---- function call block) start with in_php = true and get //.
+--- Important: ctx[lnum] is snapshotted BEFORE we process that line's own tags,
+--- so a line that OPENS a new PHP block (standalone "<?php") is marked HTML
+--- context (false) — it will be skipped by is_php_tag_only() rather than
+--- wrapped in <!-- -->.  A line that CLOSES a block ("?>") is marked PHP
+--- context (true) — it will also be skipped by is_php_tag_only().
 local function build_php_ctx(bufnr, end_lnum)
 	local raw = vim.api.nvim_buf_get_lines(bufnr, 0, end_lnum, false)
 	local ctx = {}
 	local in_php = false
 
 	for i, line in ipairs(raw) do
-		-- Snapshot context BEFORE processing this line's PHP tags.
-		ctx[i] = in_php
+		ctx[i] = in_php -- snapshot BEFORE processing this line's tags
 
 		local pos = 1
 		while pos <= #line do
 			if not in_php then
-				-- Find next opening tag: <?php or <?= (short echo)
 				local s1 = line:find("<%?php", pos)
 				local s2 = line:find("<%?=", pos)
 				local open = (s1 and s2) and math.min(s1, s2) or s1 or s2
 				if open then
 					in_php = true
-					pos = open + 2 -- advance past <?
+					pos = open + 2
 				else
-					break -- no more transitions on this line
+					break
 				end
 			else
-				-- Find next closing tag: ?>
 				local close = line:find("%?>", pos)
 				if close then
 					in_php = false
-					pos = close + 2 -- advance past ?>
+					pos = close + 2
 				else
 					break
 				end
@@ -87,7 +90,7 @@ local function build_php_ctx(bufnr, end_lnum)
 	return ctx
 end
 
--- ── Treesitter / plugin fallback (non-PHP mixed files) ───────────────────────
+-- ── Treesitter / plugin fallback (non-PHP filetypes) ─────────────────────────
 
 local LANG_CS = {
 	php = "// %s",
@@ -108,8 +111,6 @@ local LANG_CS = {
 local function cs_via_treesitter(bufnr, lnum)
 	local row = lnum - 1
 
-	-- Try ts_context_commentstring with the correct `location` option.
-	-- (Not `cursor_pos` — that key is unrecognised and silently ignored.)
 	local ok, tsc = pcall(require, "ts_context_commentstring")
 	if ok then
 		local cs = tsc.calculate_commentstring({ location = { row, 0 } })
@@ -118,7 +119,6 @@ local function cs_via_treesitter(bufnr, lnum)
 		end
 	end
 
-	-- Try Neovim's native language_for_range as a secondary check.
 	local ts_ok, parser = pcall(vim.treesitter.get_parser, bufnr)
 	if ts_ok and parser then
 		local lt = parser:language_for_range({ row, 0, row, 0 })
@@ -135,9 +135,6 @@ end
 
 -- ── Commentstring resolver factory ────────────────────────────────────────────
 
---- Returns cs(lnum) → commentstring, choosing strategy by filetype.
---- For PHP: precomputed scan map (built once, O(n) total).
---- For others: treesitter query per line.
 local function make_cs_resolver(bufnr, end_lnum)
 	if vim.bo[bufnr].filetype == "php" then
 		local php_ctx = build_php_ctx(bufnr, end_lnum)
@@ -153,16 +150,11 @@ end
 
 -- ── Line-level comment helpers ────────────────────────────────────────────────
 
---- Split commentstring into (left_marker, right_marker), both trimmed.
----   "// %s"       → "//",   ""
----   "<!-- %s -->" → "<!--", "-->"
 local function parse_cs(cs)
 	local l, r = cs:match("^%s*(.-)%s*%%s%s*(.-)%s*$")
 	return l or "", r or ""
 end
 
---- True when `line` already carries comment markers from `cs`.
---- Blank lines always return true (they are skipped during toggle).
 local function is_commented(line, cs)
 	if vim.trim(line) == "" then
 		return true
@@ -172,46 +164,33 @@ local function is_commented(line, cs)
 	return (l == "" or t:sub(1, #l) == l) and (r == "" or t:sub(-#r) == r)
 end
 
---- Wrap `line` with comment markers, preserving leading indentation.
 local function add_comment(line, cs)
 	local l, r = parse_cs(cs)
 	local indent = line:match("^%s*") or ""
 	local content = line:sub(#indent + 1)
-	if r ~= "" then
-		return indent .. l .. " " .. content .. " " .. r
-	else
-		return indent .. l .. " " .. content
-	end
+	return r ~= "" and (indent .. l .. " " .. content .. " " .. r) or (indent .. l .. " " .. content)
 end
 
---- Strip comment markers from `line`, preserving leading indentation.
 local function remove_comment(line, cs)
 	local l, r = parse_cs(cs)
 	local indent = line:match("^%s*") or ""
 	local content = vim.trim(line:sub(#indent + 1))
 
-	-- Remove left marker + one optional space.
 	if l ~= "" and content:sub(1, #l) == l then
 		content = content:sub(#l + 1)
-		content = content:match("^ (.*)") or content -- eat one leading space
+		content = content:match("^ (.*)") or content
 	end
-
-	-- Remove right marker + one optional trailing space.
 	local tc = vim.trim(content)
 	if r ~= "" and tc:sub(-#r) == r then
 		tc = tc:sub(1, -(#r + 1))
-		tc = tc:match("(.*%S)") or tc -- eat one trailing space
+		tc = tc:match("(.*%S)") or tc
 		content = tc
 	end
-
 	return indent .. vim.trim(content)
 end
 
 -- ── Public API ────────────────────────────────────────────────────────────────
 
---- Toggle comments on lines [start_lnum, end_lnum] (1-indexed, inclusive).
---- Direction: uncomment when ALL non-blank lines are already commented,
---- otherwise comment.
 function M.toggle(start_lnum, end_lnum)
 	local bufnr = vim.api.nvim_get_current_buf()
 	local cs_for = make_cs_resolver(bufnr, end_lnum)
@@ -220,13 +199,17 @@ function M.toggle(start_lnum, end_lnum)
 	local entries = {}
 	for lnum = start_lnum, end_lnum do
 		local text = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1] or ""
-		entries[#entries + 1] = { text = text, cs = cs_for(lnum) }
+		entries[#entries + 1] = {
+			text = text,
+			cs = cs_for(lnum),
+			skip = is_php_tag_only(text), -- standalone tag: pass through unchanged
+		}
 	end
 
-	-- Decide direction.
+	-- Decide direction: uncomment when ALL non-skip, non-blank lines are commented.
 	local all_commented = true
 	for _, e in ipairs(entries) do
-		if vim.trim(e.text) ~= "" and not is_commented(e.text, e.cs) then
+		if not e.skip and vim.trim(e.text) ~= "" and not is_commented(e.text, e.cs) then
 			all_commented = false
 			break
 		end
@@ -235,7 +218,8 @@ function M.toggle(start_lnum, end_lnum)
 	-- Build replacement lines.
 	local new_lines = {}
 	for _, e in ipairs(entries) do
-		if vim.trim(e.text) == "" then
+		if e.skip or vim.trim(e.text) == "" then
+			-- Standalone PHP structural tag or blank line: preserve exactly.
 			new_lines[#new_lines + 1] = e.text
 		elseif all_commented then
 			new_lines[#new_lines + 1] = remove_comment(e.text, e.cs)
@@ -247,33 +231,27 @@ function M.toggle(start_lnum, end_lnum)
 	vim.api.nvim_buf_set_lines(bufnr, start_lnum - 1, end_lnum, false, new_lines)
 end
 
---- Operator callback — registered via `vim.o.operatorfunc`.
 function M.operator(_type)
 	local s = vim.api.nvim_buf_get_mark(0, "[")[1]
 	local e = vim.api.nvim_buf_get_mark(0, "]")[1]
 	M.toggle(s, e)
 end
 
---- Install buffer-local gc / gcc keymaps that shadow mini.comment for this
---- buffer only.  Call from any mixed-language ftplugin.
 function M.setup_buf_keymaps()
 	local buf = vim.api.nvim_get_current_buf()
 	local base = { buffer = buf, silent = true }
 
-	-- gcc — current line
 	vim.keymap.set("n", "gcc", function()
 		M.toggle(vim.fn.line("."), vim.fn.line("."))
 	end, vim.tbl_extend("force", base, { desc = "Toggle comment (line)" }))
 
-	-- gc<motion> — operator
 	vim.keymap.set("n", "gc", function()
 		vim.o.operatorfunc = "v:lua.require'config.core.lib.mixed_comment'.operator"
 		return "g@"
 	end, vim.tbl_extend("force", base, { expr = true, desc = "Comment operator" }))
 
-	-- gc — visual selection
-	-- Read extents via getpos() WHILE STILL IN visual mode, before <Esc> commits
-	-- the marks — '< and '> reflect the PREVIOUS selection until that point.
+	-- Read visual extents BEFORE <Esc> — '< and '> only reflect the previous
+	-- selection until Neovim exits visual mode and commits them.
 	vim.keymap.set("v", "gc", function()
 		local anchor = vim.fn.getpos("v")
 		local cursor = vim.fn.getpos(".")

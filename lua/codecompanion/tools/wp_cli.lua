@@ -110,45 +110,83 @@ end
 
 local block_overrides_audit_php = [[
 $stylesheet = get_stylesheet();
-$template = get_template();
+$template   = get_template();
 
 $stylesheet_dir = get_stylesheet_directory();
-$template_dir = get_template_directory();
+$template_dir   = get_template_directory();
 
 $theme = wp_get_theme($stylesheet);
 
+// Block Bindings API (stable WP 6.7+, central to WP 7 interactivity model)
+$bindings_registry  = function_exists("wp_block_bindings_registry") ? wp_block_bindings_registry() : null;
+$registered_sources = $bindings_registry ? array_keys($bindings_registry->get_all_registered()) : null;
+
+// Synced patterns (wp_block CPT)
+$synced_counts = wp_count_posts("wp_block");
+$synced_total  = isset($synced_counts->publish) ? (int) $synced_counts->publish : 0;
+
+// REST API namespaces registered on this install
+$rest_server     = rest_get_server();
+$rest_namespaces = method_exists($rest_server, "get_namespaces") ? $rest_server->get_namespaces() : null;
+
 $data = array(
+	// ── Core ─────────────────────────────────────────────────────────────────
 	"core_version" => get_bloginfo("version"),
-	"theme_name" => $theme->get("Name"),
-	"stylesheet" => $stylesheet,
-	"template" => $template,
+
+	// ── Theme ─────────────────────────────────────────────────────────────────
+	"theme_name"   => $theme->get("Name"),
+	"stylesheet"   => $stylesheet,
+	"template"     => $template,
 	"is_child_theme" => $stylesheet !== $template,
 
 	"child_theme_dir" => $stylesheet_dir,
 	"parent_theme_dir" => $template_dir,
 
-	"child_has_style_css" => file_exists($stylesheet_dir . "/style.css"),
-	"parent_has_style_css" => file_exists($template_dir . "/style.css"),
+	"child_has_style_css"       => file_exists($stylesheet_dir . "/style.css"),
+	"parent_has_style_css"      => file_exists($template_dir  . "/style.css"),
+	"child_has_functions_php"   => file_exists($stylesheet_dir . "/functions.php"),
+	"parent_has_functions_php"  => file_exists($template_dir  . "/functions.php"),
+	"child_has_theme_json"      => file_exists($stylesheet_dir . "/theme.json"),
+	"parent_has_theme_json"     => file_exists($template_dir  . "/theme.json"),
+	"child_has_templates_dir"   => is_dir($stylesheet_dir . "/templates"),
+	"parent_has_templates_dir"  => is_dir($template_dir   . "/templates"),
+	"child_has_parts_dir"       => is_dir($stylesheet_dir . "/parts"),
+	"parent_has_parts_dir"      => is_dir($template_dir   . "/parts"),
+	"child_has_patterns_dir"    => is_dir($stylesheet_dir . "/patterns"),
+	"parent_has_patterns_dir"   => is_dir($template_dir   . "/patterns"),
 
-	"child_has_functions_php" => file_exists($stylesheet_dir . "/functions.php"),
-	"parent_has_functions_php" => file_exists($template_dir . "/functions.php"),
+	// ── Block Theme ──────────────────────────────────────────────────────────
+	"wp_is_block_theme"                  => function_exists("wp_is_block_theme") ? wp_is_block_theme() : null,
+	"has_get_block_templates_function"   => function_exists("get_block_templates"),
+	"has_get_block_template_function"    => function_exists("get_block_template"),
+	"has_resolve_block_template_function" => function_exists("resolve_block_template"),
 
-	"child_has_theme_json" => file_exists($stylesheet_dir . "/theme.json"),
-	"parent_has_theme_json" => file_exists($template_dir . "/theme.json"),
+	// ── Block Bindings API (WP 6.7+ / WP 7) ─────────────────────────────────
+	"has_block_bindings_registry"        => function_exists("wp_block_bindings_registry"),
+	"has_register_block_bindings_source" => function_exists("register_block_bindings_source"),
+	"registered_block_binding_sources"   => $registered_sources,
 
-	"child_has_templates_dir" => is_dir($stylesheet_dir . "/templates"),
-	"parent_has_templates_dir" => is_dir($template_dir . "/templates"),
+	// ── Interactivity API (WP 6.5+ / WP 7) ──────────────────────────────────
+	"has_interactivity_api"      => class_exists("WP_Interactivity_API"),
+	"has_wp_interactivity_state" => function_exists("wp_interactivity_state"),
+	"has_wp_interactivity_config" => function_exists("wp_interactivity_config"),
 
-	"child_has_parts_dir" => is_dir($stylesheet_dir . "/parts"),
-	"parent_has_parts_dir" => is_dir($template_dir . "/parts"),
+	// ── Block Hooks (WP 6.5+) ────────────────────────────────────────────────
+	"has_block_hooks"            => function_exists("insert_hooked_blocks"),
+	"has_traverse_and_serialize_blocks" => function_exists("traverse_and_serialize_blocks"),
 
-	"child_has_patterns_dir" => is_dir($stylesheet_dir . "/patterns"),
-	"parent_has_patterns_dir" => is_dir($template_dir . "/patterns"),
+	// ── Synced Patterns ──────────────────────────────────────────────────────
+	"has_synced_patterns_cpt"    => post_type_exists("wp_block"),
+	"synced_pattern_count"       => $synced_total,
 
-	"wp_is_block_theme" => function_exists("wp_is_block_theme") ? wp_is_block_theme() : null,
-	"has_get_block_templates_function" => function_exists("get_block_templates"),
-	"has_get_block_template_function" => function_exists("get_block_template"),
-	"has_resolve_block_template_function" => function_exists("resolve_block_template")
+	// ── Font Library (WP 6.5+) ──────────────────────────────────────────────
+	"has_font_library"           => function_exists("wp_get_font_face_data"),
+	"has_font_face_cpt"          => post_type_exists("wp_font_face"),
+	"has_font_family_cpt"        => post_type_exists("wp_font_family"),
+
+	// ── REST API ─────────────────────────────────────────────────────────────
+	"rest_api_namespaces"        => $rest_namespaces,
+	"has_block_editor_rest_namespace" => in_array("wp-block-editor/v1", (array) $rest_namespaces),
 );
 
 echo wp_json_encode($data, JSON_PRETTY_PRINT);
@@ -164,24 +202,37 @@ return {
 This tool runs WP-CLI against the detected WordPress root.
 
 Use this tool whenever the user asks about:
-- active WordPress theme
-- installed themes
-- installed plugins
-- WordPress options
-- posts, pages, or CPTs
-- WordPress 7 readiness
-- block theme support
-- theme.json
-- templates
-- template parts
-- block overrides
+- active WordPress theme or installed themes/plugins
+- WordPress options, posts, pages, or CPTs
+- WordPress 7 readiness or upgrade planning
+- Block theme support or theme.json
+- FSE templates or template parts
+- Block overrides or block bindings
+- Interactivity API or block hooks support
+- Synced patterns (wp_block CPT)
+- Font Library (wp_font_face / wp_font_family)
+- REST API namespaces registered on this install
 - WordPress environment state
 
+Action reference:
+- block_overrides_audit  — comprehensive WP 7 readiness check (block bindings, interactivity API,
+                           block hooks, synced patterns, font library, REST namespaces, FSE dirs)
+- active_theme           — currently active theme (name, slug, status)
+- theme_list             — all installed themes
+- plugin_list            — all installed plugins
+- core_version           — WordPress core version string
+- templates_list         — FSE wp_template posts in the database
+- template_parts_list    — FSE wp_template_part posts in the database
+- synced_patterns_list   — synced block patterns (wp_block CPT)
+- global_styles_get      — compiled global stylesheet from theme.json + user overrides
+- rest_api_namespaces    — all REST API namespaces registered on this install
+- raw                    — arbitrary WP-CLI subcommand (no leading "wp")
+
 Rules:
-- The tool already runs the "wp" binary.
-- Do not include "wp", "@wp", "@wp_cli", "wp_cli", "cli", shell redirects, pipes, or shell syntax.
-- Prefer the "block_overrides_audit" action when the user asks whether the environment can handle block overrides.
+- The tool already runs the "wp" binary. Do not include "wp", "@wp", "@wp_cli", shell redirects, pipes, or shell metacharacters.
+- Prefer block_overrides_audit when the user asks about WP 7 readiness, block bindings, Interactivity API, or whether the environment supports block overrides.
 - Prefer read-only actions unless the user explicitly asks to change WordPress state.
+- For REST API questions use rest_api_namespaces before falling back to raw.
 ]],
 
 	schema = {
@@ -195,6 +246,11 @@ Rules:
 					"plugin_list",
 					"core_version",
 					"block_overrides_audit",
+					"templates_list",
+					"template_parts_list",
+					"synced_patterns_list",
+					"global_styles_get",
+					"rest_api_namespaces",
 					"raw",
 				},
 				description = "The safe WP-CLI action to run.",
@@ -235,6 +291,28 @@ Rules:
 
 		if action == "block_overrides_audit" then
 			return wp .. " eval " .. shell_quote(block_overrides_audit_php)
+		end
+
+		if action == "templates_list" then
+			return wp .. " post list --post_type=wp_template --fields=ID,post_title,post_name,post_status --format=json"
+		end
+
+		if action == "template_parts_list" then
+			return wp .. " post list --post_type=wp_template_part --fields=ID,post_title,post_name,post_status --format=json"
+		end
+
+		if action == "synced_patterns_list" then
+			return wp .. " post list --post_type=wp_block --fields=ID,post_title,post_name,post_status --format=json"
+		end
+
+		if action == "global_styles_get" then
+			local php = "echo wp_json_encode( array( 'stylesheet' => wp_get_global_stylesheet(), 'variables' => wp_get_global_settings() ), JSON_PRETTY_PRINT );"
+			return wp .. " eval " .. shell_quote(php)
+		end
+
+		if action == "rest_api_namespaces" then
+			local php = "echo wp_json_encode( rest_get_server()->get_namespaces(), JSON_PRETTY_PRINT );"
+			return wp .. " eval " .. shell_quote(php)
 		end
 
 		if action == "raw" then
