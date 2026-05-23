@@ -96,6 +96,7 @@ return {
 				tex = { "latexindent" },
 				lua = { "stylua" },
 				python = { "isort", "black" },
+				toml = { "taplo" },
 				sh = { "shfmt" },
 				zig = { "zigfmt" },
 				r = {},

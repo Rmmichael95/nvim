@@ -45,6 +45,7 @@ return {
 			"ruff", -- lang/python.lua, conform.lua
 			-- ── LSP — C# ──────────────────────────────────────────────────────────
 			"roslyn", -- lang/cs.lua
+			"svelte-language-server", -- lang/svelte.lua
 			-- ── DAP ───────────────────────────────────────────────────────────────
 			"netcoredbg", -- dap.lua (cs, fsharp, vb)
 			"cpptools", -- dap.lua (c, cpp)
@@ -63,7 +64,8 @@ return {
 			"stylua", -- conform.lua (lua)
 			"isort", -- conform.lua (python)
 			"black", -- conform.lua (python)
-			"zigfmt",
+			"taplo", -- lang/toml.lua
+			-- "zigfmt",
 			-- ── nvim-lint ─────────────────────────────────────────────────────────
 			"codespell", -- nvim-lint.lua (*)
 			"cpplint", -- nvim-lint.lua (c, cpp)
@@ -72,7 +74,7 @@ return {
 			"phpcs", -- nvim-lint.lua (php)
 			"markdownlint-cli2", -- nvim-lint.lua (markdown), conform.lua (markdown)
 			"markdown-toc", -- conform.lua (markdown)
-			"shellcheck",
+			"shellcheck", -- nvim-lint.lua (sh, bash)
 		},
 	},
 	config = function(_, opts)
