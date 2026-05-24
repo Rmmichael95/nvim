@@ -9,14 +9,16 @@ local M = {}
 -- Injected into chat-mode system prompt. Keep minimal; skill is the source of truth.
 M.chat_system_prompt_addon = [[
 
-For Dhali patterns, FSE templates, or template parts, use the dhali-fse skill.
-Read context.md / {project-name}_context.md before anything else.
+For Dhali patterns, FSE templates, or template parts, strictly use the dhali-fse skill.
+For authoring tasks, MCP pre-flight (Step 0 in the skill) is mandatory before reading files or context.
+MCP pre-flight means discovery AND a cheap execute sanity check must both succeed.
 Use WordPress MCP abilities before @wp_cli.
 Execute MCP abilities with `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
-Before writing any approved PHP block pattern, the three MCP validation abilities
-(`dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`,
-`dhali/test-pattern-in-editor-context`) must be confirmed available. If any are
-missing, stop and ask the user to reconnect MCP.
+Before writing any approved PHP block pattern, all three MCP validation abilities must be confirmed:
+  dhali/lint-pattern-authoring-rules
+  dhali/validate-pattern-markup
+  dhali/test-pattern-in-editor-context
+If discovery works but execute fails, stop and ask the user to reconnect MCP.
 ]]
 
 local function open_cli_prompt(prompt)
@@ -40,15 +42,16 @@ Call `mcp-adapter-discover-abilities`. Confirm all three validation abilities ar
   dhali/lint-pattern-authoring-rules
   dhali/validate-pattern-markup
   dhali/test-pattern-in-editor-context
-If any are missing or MCP is disconnected → STOP. Tell me to reconnect MCP and do not continue.
+Then prove MCP execute works:
+  dhali/get-pattern-template-skeleton { "request": "pattern_template_skeleton" }
+  (or dhali/get-editor-safe-block-snippets if the pattern involves icons/SVGs/covers)
+If any ability is missing, MCP is disconnected, or discovery works but execute fails → STOP. Tell me to reconnect MCP. Do not proceed.
 
 STEP 1 — CONTEXT:
-Read the project context file if it exists (check in order):
-  {project-name}_context.md → context.md
+Read the project context file (check in order): {project-name}_context.md → context.md
 If the file is fresh and has active theme + token slugs, do not re-fetch runtime facts.
 
 STEP 2 — TARGETED MCP FETCHES (only what is missing from context):
-Use this decision table — skip any fetch whose data is already in context.md:
 
   | Needed fact                          | MCP ability                          |
   |--------------------------------------|--------------------------------------|
@@ -56,6 +59,7 @@ Use this decision table — skip any fetch whose data is already in context.md:
   | Site title or active theme name      | dhali/get-site-info                  |
   | Token slugs or layout settings       | dhali/get-token-and-layout-map       |
   | PHP return-array skeleton (always)   | dhali/get-pattern-template-skeleton  |
+  | Local image filenames (if images)    | dhali/get-local-assets               |
   | Icons, SVGs, CTAs, covers, fragile   | dhali/get-editor-safe-block-snippets |
   | Known-good Ollie/Outermost icon      | dhali/get-icon-manifest              |
 
@@ -80,8 +84,13 @@ Use the description, CPT name, screenshot, selected buffer content, or current v
 to determine the template purpose and WordPress hierarchy slug.
 
 STEP 0 — MCP PRE-FLIGHT:
-Call `mcp-adapter-discover-abilities`. Confirm validation abilities are registered.
-If MCP is disconnected or abilities are missing → STOP. Ask me to reconnect MCP.
+Call `mcp-adapter-discover-abilities`. Confirm all three validation abilities are registered:
+  dhali/lint-pattern-authoring-rules
+  dhali/validate-pattern-markup
+  dhali/test-pattern-in-editor-context
+Then prove MCP execute works:
+  dhali/get-pattern-template-skeleton { "request": "pattern_template_skeleton" }
+If MCP is disconnected, abilities are missing, or discovery works but execute fails → STOP. Ask me to reconnect MCP.
 
 STEP 1 — CONTEXT: Read the project context file.
 STEP 2 — TARGETED MCP FETCHES: Refresh only what is missing from context.
@@ -101,8 +110,13 @@ Use the description, screenshot, selected buffer content, or current visual refe
 to determine the part purpose, name, and destination.
 
 STEP 0 — MCP PRE-FLIGHT:
-Call `mcp-adapter-discover-abilities`. Confirm validation abilities are registered.
-If MCP is disconnected or abilities are missing → STOP. Ask me to reconnect MCP.
+Call `mcp-adapter-discover-abilities`. Confirm all three validation abilities are registered:
+  dhali/lint-pattern-authoring-rules
+  dhali/validate-pattern-markup
+  dhali/test-pattern-in-editor-context
+Then prove MCP execute works:
+  dhali/get-pattern-template-skeleton { "request": "pattern_template_skeleton" }
+If MCP is disconnected, abilities are missing, or discovery works but execute fails → STOP. Ask me to reconnect MCP.
 
 STEP 1 — CONTEXT: Read the project context file.
 STEP 2 — TARGETED MCP FETCHES: Refresh only what is missing from context.
