@@ -18,7 +18,7 @@ For Dhali patterns, FSE templates, or template parts:
 - Enforce Ollie/theme preset slugs exactly as listed in theme.json/context/MCP token map.
 - Do not invent color aliases such as primary, secondary, accent, navy, light, or dark unless those exact slugs exist.
 - Do not print WP-CLI commands for the user to run. Use the tool.
-- Before/after writing any PHP block pattern, use MCP safety tools: `dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`, and `dhali/test-pattern-in-editor-context` when available. Run PHP lint too. If the pattern contains generated SVG art, prefer `core/html`; avoid generated `outermost/icon-block` custom SVGs.
+- Before writing any approved PHP block pattern, confirm MCP validation tools are connected and available: `dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`, and `dhali/test-pattern-in-editor-context`. If unavailable, stop before writing. Run PHP lint and all MCP checks after writing. If the pattern contains generated SVG art, prefer `core/html`; avoid generated `outermost/icon-block` custom SVGs.
 ]]
 
 local function open_cli_prompt(prompt)
@@ -54,14 +54,19 @@ Fast workflow:
 
 MCP execute shape is always `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
 
-Validation gate after approval:
+Validation availability gate after approval:
+1. Reconnect/check the WordPress MCP server before writing.
+2. Confirm these abilities exist: `dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`, and `dhali/test-pattern-in-editor-context`.
+3. If MCP is disconnected or any required validation ability is missing, stop before writing and ask me to reconnect MCP. Do not write a file and then say validation was skipped.
+
+Validation gate after MCP availability is confirmed:
 1. Write the file.
 2. Run PHP lint on the written file.
 3. Run MCP authoring lint using `dhali/lint-pattern-authoring-rules` with `{ "request": "lint_pattern_authoring_rules", "markup": "BLOCK_MARKUP_HERE", "context": "standalone" }`.
 4. Validate the generated block markup through MCP using `dhali/validate-pattern-markup` with `{ "markup": "BLOCK_MARKUP_HERE" }`.
-5. Run MCP editor-context smoke test using `dhali/test-pattern-in-editor-context` with `{ "request": "test_pattern_in_editor_context", "markup": "BLOCK_MARKUP_HERE", "post_type": "page", "context": "standalone" }` when available.
-6. If any check fails, fix the file and rerun the checks.
-7. Do not claim the pattern is ready unless all available checks pass.
+5. Run MCP editor-context smoke test using `dhali/test-pattern-in-editor-context` with `{ "request": "test_pattern_in_editor_context", "markup": "BLOCK_MARKUP_HERE", "post_type": "page", "context": "standalone" }`.
+6. If any check fails, fix the file and rerun all checks.
+7. Do not claim the pattern is ready unless all checks pass.
 
 Icon/SVG safety:
 - Do not put placeholder comments inside final SVG markup.
@@ -75,7 +80,9 @@ Icon/SVG safety:
 
 Image/cover safety:
 - Do not use `core/cover` with `useFeaturedImage:true` for standalone screenshot-based cards.
-- Use static `core/image` or static `core/cover` with explicit URL/id/sizeSlug unless the user explicitly asks for Query Loop/post-template context.
+- Do not write `id:0`, `wp-image-0`, remote placeholder image URLs, or generated block-level `style.css` such as `"css":"overflow:hidden;"`.
+- Use static `core/image` or static `core/cover` only with a real media URL/id/sizeSlug or known-good editor-copied markup, unless the user explicitly asks for Query Loop/post-template context.
+- If no real image asset is known, ask for the image URL/id before writing the final pattern.
 ]]
 
 M.dhali_template_prompt = [[

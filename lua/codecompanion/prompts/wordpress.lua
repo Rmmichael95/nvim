@@ -42,6 +42,7 @@ Use @wp_cli when:
 Do not print WP-CLI commands and ask the user to run them.
 Do not guess WordPress state or invent command output.
 Use the smallest tool that can answer the question.
+For PHP pattern writes, MCP validation availability is mandatory before writing: confirm `dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`, and `dhali/test-pattern-in-editor-context` are available, or stop and ask the user to reconnect MCP.
 
 Action quick-reference:
   block_overrides_audit    — full WP 7 readiness check
