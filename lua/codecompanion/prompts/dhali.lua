@@ -1,24 +1,22 @@
 -- ~/.config/nvim/lua/codecompanion/prompts/dhali.lua
 --
 -- Dhali FSE prompt launchers for CodeCompanion.
--- Keep detailed conventions in the dhali-fse skill, not in these prompts.
+-- All conventions, token rules, and validation steps live in the dhali-fse skill.
+-- Keep these prompts thin; do not duplicate skill content here.
 
 local M = {}
 
+-- Injected into chat-mode system prompt. Keep minimal; skill is the source of truth.
 M.chat_system_prompt_addon = [[
 
-Dhali FSE instructions:
-
-For Dhali patterns, FSE templates, or template parts:
-- Use the dhali-fse skill as the source of detailed conventions.
-- Read the existing project context file first when present: {project-name}_context.md, then context.md.
-- Use WordPress MCP abilities before @wp_cli for small live facts.
-- Execute MCP abilities with `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
-- Only refresh missing or task-critical context; do not reread the full pattern library every run.
-- Enforce Ollie/theme preset slugs exactly as listed in theme.json/context/MCP token map.
-- Do not invent color aliases such as primary, secondary, accent, navy, light, or dark unless those exact slugs exist.
-- Do not print WP-CLI commands for the user to run. Use the tool.
-- Before writing any approved PHP block pattern, confirm MCP validation tools are connected and available: `dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`, and `dhali/test-pattern-in-editor-context`. If unavailable, stop before writing. Run PHP lint and all MCP checks after writing. If the pattern contains generated SVG art, prefer `core/html`; avoid generated `outermost/icon-block` custom SVGs.
+For Dhali patterns, FSE templates, or template parts, use the dhali-fse skill.
+Read context.md / {project-name}_context.md before anything else.
+Use WordPress MCP abilities before @wp_cli.
+Execute MCP abilities with `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
+Before writing any approved PHP block pattern, the three MCP validation abilities
+(`dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`,
+`dhali/test-pattern-in-editor-context`) must be confirmed available. If any are
+missing, stop and ask the user to reconnect MCP.
 ]]
 
 local function open_cli_prompt(prompt)
@@ -29,95 +27,92 @@ local function open_cli_prompt(prompt)
 	})
 end
 
+-- ─── Pattern ────────────────────────────────────────────────────────────────
+
 M.dhali_pattern_prompt = [[
 Use the dhali-fse skill.
 
 TASK: Author a new PHP block pattern for the dhali-pattern-library plugin.
-
 Use the screenshot, description, selected buffer content, or current visual reference as the design source.
 
-Fast workflow:
-1. Read the existing project context file from the WordPress root if it exists and is concise:
-   - {project-name}_context.md
-   - context.md
-2. Refresh missing runtime/token facts through WordPress MCP, not broad file scans:
-   - `dhali/get-project-snapshot` with `{ "request": "project_snapshot" }`
-   - `dhali/get-site-info` with `{ "request": "site_info" }`
-   - `dhali/get-token-and-layout-map` with `{ "request": "token_and_layout_map" }` only if token facts are missing/stale
-   - `dhali/get-pattern-template-skeleton` with `{ "request": "pattern_template_skeleton" }` for every new PHP pattern
-   - `dhali/get-editor-safe-block-snippets` with `{ "request": "editor_safe_block_snippets" }` for icons, generated SVGs, plus CTAs, cover/image cards, or fragile editor markup
-   - `dhali/get-icon-manifest` with `{ "request": "icon_manifest" }` only for known-good Ollie/Outermost icon work
-3. Use @wp_cli only when MCP does not expose the needed fact.
-4. Inspect existing files only when filename/style collision or nearby pattern style matters.
-5. Show the required four-part proposal.
-6. Do not write the file until I explicitly approve.
+STEP 0 — MCP PRE-FLIGHT (do this before reading any files or asking questions):
+Call `mcp-adapter-discover-abilities`. Confirm all three validation abilities are registered:
+  dhali/lint-pattern-authoring-rules
+  dhali/validate-pattern-markup
+  dhali/test-pattern-in-editor-context
+If any are missing or MCP is disconnected → STOP. Tell me to reconnect MCP and do not continue.
 
-MCP execute shape is always `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
+STEP 1 — CONTEXT:
+Read the project context file if it exists (check in order):
+  {project-name}_context.md → context.md
+If the file is fresh and has active theme + token slugs, do not re-fetch runtime facts.
 
-Validation availability gate after approval:
-1. Reconnect/check the WordPress MCP server before writing.
-2. Confirm these abilities exist: `dhali/lint-pattern-authoring-rules`, `dhali/validate-pattern-markup`, and `dhali/test-pattern-in-editor-context`.
-3. If MCP is disconnected or any required validation ability is missing, stop before writing and ask me to reconnect MCP. Do not write a file and then say validation was skipped.
+STEP 2 — TARGETED MCP FETCHES (only what is missing from context):
+Use this decision table — skip any fetch whose data is already in context.md:
 
-Validation gate after MCP availability is confirmed:
-1. Write the file.
-2. Run PHP lint on the written file.
-3. Run MCP authoring lint using `dhali/lint-pattern-authoring-rules` with `{ "request": "lint_pattern_authoring_rules", "markup": "BLOCK_MARKUP_HERE", "context": "standalone" }`.
-4. Validate the generated block markup through MCP using `dhali/validate-pattern-markup` with `{ "markup": "BLOCK_MARKUP_HERE" }`.
-5. Run MCP editor-context smoke test using `dhali/test-pattern-in-editor-context` with `{ "request": "test_pattern_in_editor_context", "markup": "BLOCK_MARKUP_HERE", "post_type": "page", "context": "standalone" }`.
-6. If any check fails, fix the file and rerun all checks.
-7. Do not claim the pattern is ready unless all checks pass.
+  | Needed fact                          | MCP ability                          |
+  |--------------------------------------|--------------------------------------|
+  | Core/PHP/theme/layout snapshot       | dhali/get-project-snapshot           |
+  | Site title or active theme name      | dhali/get-site-info                  |
+  | Token slugs or layout settings       | dhali/get-token-and-layout-map       |
+  | PHP return-array skeleton (always)   | dhali/get-pattern-template-skeleton  |
+  | Icons, SVGs, CTAs, covers, fragile   | dhali/get-editor-safe-block-snippets |
+  | Known-good Ollie/Outermost icon      | dhali/get-icon-manifest              |
 
-Icon/SVG safety:
-- Do not put placeholder comments inside final SVG markup.
-- Do not generate custom `outermost/icon-block` SVG markup from scratch.
-- Use `outermost/icon-block` only when copying known-good editor-saved markup or a trusted manifest snippet.
-- For AI-generated decorative SVGs, use `core/html` with inline SVG instead of `outermost/icon-block`.
-- For circular plus CTAs, use `core/buttons` + `core/button` with text `+`, not `outermost/icon-block`.
-- Do not output empty SVG shells for named icons. Named icons must include the saved SVG path.
-- Do not use CSS variables in `iconColorValue` or `iconBackgroundColorValue`; preserve editor-resolved values such as `#fbb042` or `#ffffff` when using copied editor markup.
-- Preserve hardcoded values that came from editor-saved markup. Do not normalize them unless explicitly asked.
+Use @wp_cli only when MCP does not expose the needed fact.
+Inspect existing files only for filename collision or nearby style match.
 
-Image/cover safety:
-- Do not use `core/cover` with `useFeaturedImage:true` for standalone screenshot-based cards.
-- Do not write `id:0`, `wp-image-0`, remote placeholder image URLs, or generated block-level `style.css` such as `"css":"overflow:hidden;"`.
-- Use static `core/image` or static `core/cover` only with a real media URL/id/sizeSlug or known-good editor-copied markup, unless the user explicitly asks for Query Loop/post-template context.
-- If no real image asset is known, ask for the image URL/id before writing the final pattern.
+STEP 3 — PROPOSAL:
+Show the required four-part proposal (see dhali-fse skill: Authoring Protocol).
+Do not write the file until I explicitly approve.
+
+STEP 4 — WRITE + VALIDATE (after approval):
+Follow the Post-Approval Write and Validation Workflow in the dhali-fse skill exactly.
 ]]
+
+-- ─── Template ───────────────────────────────────────────────────────────────
 
 M.dhali_template_prompt = [[
 Use the dhali-fse skill.
 
 TASK: Author a new FSE HTML template for the dhali-pattern-library plugin.
+Use the description, CPT name, screenshot, selected buffer content, or current visual reference
+to determine the template purpose and WordPress hierarchy slug.
 
-Use the description, CPT name, screenshot, selected buffer content, or current visual reference to determine the template purpose and WordPress hierarchy slug.
+STEP 0 — MCP PRE-FLIGHT:
+Call `mcp-adapter-discover-abilities`. Confirm validation abilities are registered.
+If MCP is disconnected or abilities are missing → STOP. Ask me to reconnect MCP.
 
-Workflow:
-1. Read the existing project context file from the WordPress root if it exists.
-2. Refresh only task-critical context through MCP first, then @wp_cli only if MCP lacks the fact.
-3. Show the required four-part proposal.
-4. Do not write the file until I explicitly approve.
-5. After approval, validate file syntax/markup as appropriate before claiming success.
+STEP 1 — CONTEXT: Read the project context file.
+STEP 2 — TARGETED MCP FETCHES: Refresh only what is missing from context.
+STEP 3 — PROPOSAL: Show the required four-part proposal. Do not write until I approve.
+STEP 4 — WRITE + VALIDATE: Follow the skill's Post-Approval Workflow.
 
-MCP execute shape is always `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
+MCP execute shape: `{ "ability_name": "...", "parameters": { ... } }` — never use `ability_input`.
 ]]
+
+-- ─── Template Part ──────────────────────────────────────────────────────────
 
 M.dhali_part_prompt = [[
 Use the dhali-fse skill.
 
 TASK: Author a new HTML template part.
+Use the description, screenshot, selected buffer content, or current visual reference
+to determine the part purpose, name, and destination.
 
-Use the description, screenshot, selected buffer content, or current visual reference to determine the part purpose, name, and destination.
+STEP 0 — MCP PRE-FLIGHT:
+Call `mcp-adapter-discover-abilities`. Confirm validation abilities are registered.
+If MCP is disconnected or abilities are missing → STOP. Ask me to reconnect MCP.
 
-Workflow:
-1. Read the existing project context file from the WordPress root if it exists.
-2. Refresh only task-critical context through MCP first, then @wp_cli only if MCP lacks the fact.
-3. Show the required four-part proposal.
-4. Do not write the file until I explicitly approve.
-5. After approval, validate file syntax/markup as appropriate before claiming success.
+STEP 1 — CONTEXT: Read the project context file.
+STEP 2 — TARGETED MCP FETCHES: Refresh only what is missing from context.
+STEP 3 — PROPOSAL: Show the required four-part proposal. Do not write until I approve.
+STEP 4 — WRITE + VALIDATE: Follow the skill's Post-Approval Workflow.
 
-MCP execute shape is always `{ "ability_name": "...", "parameters": { ... } }`; never use `ability_input`.
+MCP execute shape: `{ "ability_name": "...", "parameters": { ... } }` — never use `ability_input`.
 ]]
+
+-- ─── Launchers ──────────────────────────────────────────────────────────────
 
 M.open_dhali_pattern_prompt = function()
 	open_cli_prompt(M.dhali_pattern_prompt)
