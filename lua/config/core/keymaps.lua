@@ -73,6 +73,7 @@ map.set("n", "[<Space>", "O<Esc>j", { desc = "Add blank line above" })
 map.set("n", "]<Space>", "o<Esc>k", { desc = "Add blank line below" })
 map.set("n", "Y", "y$", { desc = "Yank to end of line" })
 map.set("n", "J", "mzJ`z", { desc = "Join line (keep cursor position)" })
+map.set("i", "<C-u>", "<C-G>u<esc>mzgUiw`za", { desc = "Uppercase current word (undoable)" })
 
 map.set("c", "<C-A>", "<Home>") -- bash like keys for the command line
 map.set("c", "<C-E>", "<End>") -- bash like keys for the command line
