@@ -27,12 +27,13 @@ Do not print WP-CLI commands for the user to run. Use the tool.
 Do not guess WordPress state or invent command output.
 Use the smallest tool that answers the question.
 
-For PHP pattern writes, MCP must pass both discovery and an execute sanity check before writing:
+For PHP pattern writes, MCP must pass both discovery and an execute sanity check before writing.
+Required fast-validation abilities:
   dhali/lint-pattern-authoring-rules
   dhali/validate-pattern-markup
-  dhali/test-pattern-in-editor-context
 Also execute either dhali/get-pattern-template-skeleton or dhali/get-editor-safe-block-snippets successfully.
-If any ability is missing, MCP is disconnected, or discovery works but execute fails → STOP and ask the user to reconnect MCP.
+Run dhali/test-pattern-in-editor-context only when the dhali-fse skill's deep-validation triggers apply or the user asks for it.
+If any required fast ability is missing, MCP is disconnected, or discovery works but execute fails → STOP and ask the user to reconnect MCP.
 
 Action quick-reference (@wp_cli):
   block_overrides_audit    — full WP 7 readiness check
@@ -107,12 +108,12 @@ Use the dhali-fse skill.
 
 TASK: Author a new WordPress / Ollie-compatible PHP block pattern for the dhali-pattern-library plugin.
 Use the screenshot or current visual reference as the design source.
+If the source is a post list/card grid, use the Query Loop fast path and native post blocks; do not fetch Cover/icon snippets unless the pattern actually uses them.
 
 STEP 0 — MCP PRE-FLIGHT (required before reading any files or asking questions):
-Call `mcp-adapter-discover-abilities`. Confirm all three validation abilities are registered:
+Call `mcp-adapter-discover-abilities`. Confirm the two fast-validation abilities are registered:
   dhali/lint-pattern-authoring-rules
   dhali/validate-pattern-markup
-  dhali/test-pattern-in-editor-context
 Then prove MCP execute works with one cheap sanity call:
   dhali/get-pattern-template-skeleton { "request": "pattern_template_skeleton" }
 or, if the pattern involves icons/SVGs/CTAs/covers/fragile markup:
@@ -141,8 +142,8 @@ STEP 3 — PROPOSAL:
 Show the required four-part proposal (see dhali-fse skill: Authoring Protocol).
 Do not write the file until I explicitly approve.
 
-STEP 4 — WRITE + VALIDATE (after approval):
-Follow the Post-Approval Write and Validation Workflow in the dhali-fse skill exactly.
+STEP 4 — WRITE + FAST VALIDATE (after approval):
+Follow the Post-Approval Write and Validation Workflow in the dhali-fse skill. Use fast validation by default; run editor-context validation only when the skill's deep-validation triggers apply or I explicitly ask for it.
 ]]
 
 M.open_ollie_pattern_prompt = function()
