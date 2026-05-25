@@ -32,8 +32,9 @@ Required fast-validation abilities:
   dhali/lint-pattern-authoring-rules
   dhali/validate-pattern-markup
 Also execute either dhali/get-pattern-template-skeleton or dhali/get-editor-safe-block-snippets successfully.
-Run dhali/test-pattern-in-editor-context only when the dhali-fse skill's deep-validation triggers apply or the user asks for it.
-If any required fast ability is missing, MCP is disconnected, or discovery works but execute fails → STOP and ask the user to reconnect MCP.
+Run dhali/test-pattern-in-editor-context only when the dhali-fse skill's deep-validation triggers apply
+(always for core/query and core/post-template) or the user explicitly asks for it.
+If any required fast ability is missing, MCP is disconnected, or execute fails → STOP and ask the user to reconnect MCP.
 
 Action quick-reference (@wp_cli):
   block_overrides_audit    — full WP 7 readiness check
@@ -70,11 +71,15 @@ Strict workflow:
 MCP execution shape: `{ "ability_name": "...", "parameters": { ... } }` — never use `ability_input`.
 
 Preferred MCP abilities for context (in order):
-1. dhali/get-project-snapshot      { "request": "project_snapshot" }
-2. dhali/get-site-info             { "request": "site_info" }
-3. dhali/get-token-and-layout-map  { "request": "token_and_layout_map" }
-4. dhali/get-icon-manifest         { "request": "icon_manifest" }  — only when icon guidance is needed
-5. dhali/sync-context              { "request": "sync_context", "confirm_write": true }  — to write/update
+1. dhali/sync-context              { "request": "sync_context", "confirm_write": true }
+   — writes/updates context.md and automatically injects the local image asset list.
+   — After a successful sync, context.md contains everything needed for pattern authoring.
+   — No further MCP calls needed unless specific facts are missing.
+2. dhali/get-project-snapshot      { "request": "project_snapshot" }    — fallback if sync-context fails
+3. dhali/get-site-info             { "request": "site_info" }           — fallback: active theme name
+4. dhali/get-token-and-layout-map  { "request": "token_and_layout_map" } — fallback: token slugs
+5. dhali/get-local-assets          { "request": "get_local_assets" }    — fallback: image list only
+6. dhali/get-icon-manifest         { "request": "icon_manifest" }       — only when icon guidance needed
 
 Fallback rules:
 - Use @wp_cli only when MCP lacks the needed fact.
@@ -85,9 +90,8 @@ Fallback rules:
 
 Output:
 - Report the context file path.
-- Summarize only the gathered facts that matter:
-  WordPress version, PHP version, active theme, token slug groups found,
-  MCP abilities used, any missing or fallback facts.
+- Summarize gathered facts: WordPress version, PHP version, active theme, token slug groups,
+  available local image assets, MCP abilities used, any missing or fallback facts.
 - Keep the response concise.
 ]]
 
@@ -99,16 +103,20 @@ M.open_wp_mcp_context_sync_prompt = function()
 	})
 end
 
--- ─── Ollie / Dhali pattern (unified) ────────────────────────────────────────
--- Previously a divergent older prompt. Now delegates to dhali-fse skill
--- with the same hard pre-flight gate used in dhali.lua.
+-- ─── Ollie / Dhali pattern (unified entry point) ─────────────────────────────
+-- Delegates to dhali-fse skill with the same hard pre-flight gate as dhali.lua.
+-- Use this from generic WordPress contexts when a pattern is needed without
+-- opening the dedicated dhali.lua launcher.
 
 M.ollie_pattern_prompt = [[
 Use the dhali-fse skill.
 
 TASK: Author a new WordPress / Ollie-compatible PHP block pattern for the dhali-pattern-library plugin.
 Use the screenshot or current visual reference as the design source.
-If the source is a post list/card grid, use the Query Loop fast path and native post blocks; do not fetch Cover/icon snippets unless the pattern actually uses them.
+
+DEFAULT: Build a static visual pattern. Do not create Query Loop, post-template, or dynamic post
+blocks unless I explicitly ask for them. A screenshot containing image, category, date, title,
+and read-more is a static visual source, not a request for dynamic post output.
 
 STEP 0 — MCP PRE-FLIGHT (required before reading any files or asking questions):
 Call `mcp-adapter-discover-abilities`. Confirm the two fast-validation abilities are registered:
@@ -116,13 +124,11 @@ Call `mcp-adapter-discover-abilities`. Confirm the two fast-validation abilities
   dhali/validate-pattern-markup
 Then prove MCP execute works with one cheap sanity call:
   dhali/get-pattern-template-skeleton { "request": "pattern_template_skeleton" }
-or, if the pattern involves icons/SVGs/CTAs/covers/fragile markup:
-  dhali/get-editor-safe-block-snippets { "request": "editor_safe_block_snippets" }
+  (or dhali/get-editor-safe-block-snippets if the pattern involves icons/SVGs/covers/fragile markup)
 If any ability is missing, MCP is disconnected, or discovery works but execute fails → STOP. Tell me to reconnect MCP and do not continue.
 
 STEP 1 — CONTEXT:
-Read the project context file if it exists (check in order):
-  {project-name}_context.md → context.md
+Read the project context file if it exists (check in order): {project-name}_context.md → context.md
 If the file is fresh and has active theme + token slugs, skip runtime re-fetches.
 
 STEP 2 — TARGETED MCP FETCHES (only what is missing from context):
@@ -133,17 +139,20 @@ STEP 2 — TARGETED MCP FETCHES (only what is missing from context):
   | Site title or active theme name      | dhali/get-site-info                  |
   | Token slugs or layout settings       | dhali/get-token-and-layout-map       |
   | PHP return-array skeleton (always)   | dhali/get-pattern-template-skeleton  |
+  | Local image filenames (if images)    | dhali/get-local-assets               |
   | Icons, SVGs, CTAs, covers, fragile   | dhali/get-editor-safe-block-snippets |
   | Known-good Ollie/Outermost icon      | dhali/get-icon-manifest              |
 
 Use @wp_cli only when MCP does not expose the needed fact.
 
 STEP 3 — PROPOSAL:
-Show the required four-part proposal (see dhali-fse skill: Authoring Protocol).
+Show the required four-part proposal (see dhali-fse skill: Authoring Protocol). Keep it concise.
 Do not write the file until I explicitly approve.
 
 STEP 4 — WRITE + FAST VALIDATE (after approval):
-Follow the Post-Approval Write and Validation Workflow in the dhali-fse skill. Use fast validation by default; run editor-context validation only when the skill's deep-validation triggers apply or I explicitly ask for it.
+Follow the Post-Approval Write and Validation Workflow in the dhali-fse skill.
+Use fast validation by default. Run editor-context validation only when deep-validation triggers
+apply (always for core/query and core/post-template) or I explicitly ask for it.
 ]]
 
 M.open_ollie_pattern_prompt = function()
