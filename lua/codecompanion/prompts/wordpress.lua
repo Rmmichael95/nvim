@@ -69,12 +69,11 @@ Strict workflow:
 MCP execution shape: `{ "ability_name": "...", "parameters": { ... } }` — never use `ability_input`.
 
 Preferred MCP abilities for context (in order):
-1. dhali/sync-context              { "request": "sync_context", "confirm_write": true }  — writes/updates context and injects local image asset list
-2. dhali/get-project-snapshot      { "request": "project_snapshot" }                     — fallback if sync-context fails
-3. dhali/get-site-info             { "request": "site_info" }
-4. dhali/get-token-and-layout-map  { "request": "token_and_layout_map" }
-5. dhali/get-local-assets          { "request": "get_local_assets" }                     — if image list not in context after sync
-6. dhali/get-icon-manifest         { "request": "icon_manifest" }                        — only when icon guidance is needed
+1. dhali/get-project-snapshot      { "request": "project_snapshot" }
+2. dhali/get-site-info             { "request": "site_info" }
+3. dhali/get-token-and-layout-map  { "request": "token_and_layout_map" }
+4. dhali/get-icon-manifest         { "request": "icon_manifest" }  — only when icon guidance is needed
+5. dhali/sync-context              { "request": "sync_context", "confirm_write": true }  — to write/update
 
 Fallback rules:
 - Use @wp_cli only when MCP lacks the needed fact.
@@ -85,8 +84,9 @@ Fallback rules:
 
 Output:
 - Report the context file path.
-- Summarize gathered facts: WordPress version, PHP version, active theme, token slug groups,
-  available local image assets, MCP abilities used, any missing or fallback facts.
+- Summarize only the gathered facts that matter:
+  WordPress version, PHP version, active theme, token slug groups found,
+  MCP abilities used, any missing or fallback facts.
 - Keep the response concise.
 ]]
 
@@ -98,10 +98,9 @@ M.open_wp_mcp_context_sync_prompt = function()
 	})
 end
 
--- ─── Ollie / Dhali pattern (unified entry point) ─────────────────────────────
--- Delegates to dhali-fse skill with the same hard pre-flight gate as dhali.lua.
--- Use this from generic WordPress contexts when a pattern is needed without
--- opening the dedicated dhali.lua launcher.
+-- ─── Ollie / Dhali pattern (unified) ────────────────────────────────────────
+-- Previously a divergent older prompt. Now delegates to dhali-fse skill
+-- with the same hard pre-flight gate used in dhali.lua.
 
 M.ollie_pattern_prompt = [[
 Use the dhali-fse skill.
@@ -116,11 +115,13 @@ Call `mcp-adapter-discover-abilities`. Confirm all three validation abilities ar
   dhali/test-pattern-in-editor-context
 Then prove MCP execute works with one cheap sanity call:
   dhali/get-pattern-template-skeleton { "request": "pattern_template_skeleton" }
-  (or dhali/get-editor-safe-block-snippets if the pattern involves icons/SVGs/covers/fragile markup)
+or, if the pattern involves icons/SVGs/CTAs/covers/fragile markup:
+  dhali/get-editor-safe-block-snippets { "request": "editor_safe_block_snippets" }
 If any ability is missing, MCP is disconnected, or discovery works but execute fails → STOP. Tell me to reconnect MCP and do not continue.
 
 STEP 1 — CONTEXT:
-Read the project context file (check in order): {project-name}_context.md → context.md
+Read the project context file if it exists (check in order):
+  {project-name}_context.md → context.md
 If the file is fresh and has active theme + token slugs, skip runtime re-fetches.
 
 STEP 2 — TARGETED MCP FETCHES (only what is missing from context):
@@ -131,7 +132,6 @@ STEP 2 — TARGETED MCP FETCHES (only what is missing from context):
   | Site title or active theme name      | dhali/get-site-info                  |
   | Token slugs or layout settings       | dhali/get-token-and-layout-map       |
   | PHP return-array skeleton (always)   | dhali/get-pattern-template-skeleton  |
-  | Local image filenames (if images)    | dhali/get-local-assets               |
   | Icons, SVGs, CTAs, covers, fragile   | dhali/get-editor-safe-block-snippets |
   | Known-good Ollie/Outermost icon      | dhali/get-icon-manifest              |
 
