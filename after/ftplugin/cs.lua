@@ -53,7 +53,10 @@ end
 -- Quick access to dotnet tasks without leaving the buffer
 map("<leader>mb", "<Cmd>OverseerRun dotnet-build<CR>", "dotnet build")
 map("<leader>mw", "<Cmd>OverseerRun dotnet-watch<CR>", "dotnet watch (pick subcommand)")
-map("<leader>mt", "<Cmd>OverseerRun dotnet-watch test<CR>", "dotnet watch test")
+--map("<leader>mt", "<Cmd>OverseerRun dotnet-watch test<CR>", "dotnet watch test")
+map("<leader>mt", function()
+	require("overseer").run_task({ name = "dotnet-watch", params = { subcommand = "test" } })
+end, "dotnet watch test")
 
 -- Inlay hints toggle (Roslyn provides these; can be noisy in crowded files)
 map("<leader>uh", function()

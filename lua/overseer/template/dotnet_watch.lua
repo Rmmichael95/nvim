@@ -36,6 +36,27 @@ return {
 
 	builder = function(params)
 		local cmd_args = { "watch", params.subcommand }
+		local cwd = nil
+
+		-- dotnet watch's --project flag has known ordering/parsing quirks when
+		-- combined with `test` (see nx-dotnet/nx-dotnet#425). Simpler and more
+		-- reliable: cd into the resolved project's own directory instead, where
+		-- dotnet watch needs no disambiguation at all.
+		if #vim.fn.glob("*.csproj", false, true) == 0 then
+			local project
+			if params.subcommand == "test" then
+				project = vim.fn.glob("**/*.Tests.csproj", false, true)[1]
+			end
+			if not project then
+				local all = vim.fn.glob("**/*.csproj", false, true)
+				if #all == 1 then
+					project = all[1]
+				end
+			end
+			if project then
+				cwd = vim.fn.fnamemodify(project, ":h")
+			end
+		end
 
 		-- Append any extra args the user typed in the prompt
 		if params.args and params.args ~= "" then
@@ -45,7 +66,6 @@ return {
 		end
 
 		local components = {
-			-- MSBuild error/warning → quickfix + diagnostics (same format as dotnet-build)
 			{
 				"on_output_quickfix",
 				open_on_match = true,
@@ -53,11 +73,9 @@ return {
 				errorformat = "%f(%l\\,%c): %t%*[^ ] %m",
 			},
 			"on_result_diagnostics",
-			-- Keep the panel open between hot-reloads; don't auto-close on success
-			-- because the process is intentionally long-running.
 			{
 				"on_complete_notify",
-				statuses = { "FAILURE" }, -- only notify on failure, not on every reload
+				statuses = { "FAILURE" },
 			},
 			"default",
 		}
@@ -65,15 +83,13 @@ return {
 		return {
 			cmd = { "dotnet" },
 			args = cmd_args,
+			cwd = cwd,
 			components = components,
-			-- Hot-reload output is very chatty; show from the start so you can
-			-- see "Application started. Press Ctrl+C to shut down." feedback.
 			default_component_params = {
 				on_output_summarize = { max_lines = 8 },
 			},
 		}
 	end,
-
 	-- Only surface this template when a dotnet project is present
 	condition = {
 		callback = function()
