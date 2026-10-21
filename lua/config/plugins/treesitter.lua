@@ -51,8 +51,10 @@ return {
 					vim.wo[0][0].foldmethod = "expr"
 					vim.wo[0][0].foldexpr = "v:lua.vim.treesitter.foldexpr()"
 
-					-- Treesitter indentation (experimental but solid for your langs)
-					vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+					-- Treesitter indentation (experimental but solid for langs not excluded)
+					if vim.bo[ev.buf].filetype ~= "cs" then
+						vim.bo[ev.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+					end
 				end,
 			})
 		end,

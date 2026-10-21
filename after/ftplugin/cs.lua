@@ -45,6 +45,13 @@ vim.wo.foldenable = false -- start unfolded; toggle with zi
 -- Off for code files; codespell via conform/lint handles typos in strings.
 vim.wo.spell = false
 
+-- ── Auto Indentation ────────────────────────────────────────────────────────────
+-- Treesitter's indent query is thin/unreliable for c_sharp — override the
+-- global treesitter indentexpr (set in treesitter.lua) with Vim's built-in
+-- C-style indent engine, which handles C#'s brace/case syntax correctly.
+vim.bo.indentexpr = ""
+vim.bo.cindent = true
+
 -- ── Buffer-local keymaps ─────────────────────────────────────────────────────
 local map = function(lhs, rhs, desc)
 	vim.keymap.set("n", lhs, rhs, { buffer = true, silent = true, desc = desc })

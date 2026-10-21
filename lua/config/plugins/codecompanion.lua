@@ -64,6 +64,41 @@ return {
 			mode = "n",
 			desc = "Claude: WP database content audit",
 		},
+		{
+			"<leader>ahr",
+			function()
+				require("codecompanion.prompts.site_chrome").open_header_refine_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: refine existing header",
+		},
+
+		{
+			"<leader>ahv",
+			function()
+				require("codecompanion.prompts.site_chrome").open_header_validate_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: validate existing header",
+		},
+
+		{
+			"<leader>afr",
+			function()
+				require("codecompanion.prompts.site_chrome").open_footer_refine_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: refine existing footer",
+		},
+
+		{
+			"<leader>afv",
+			function()
+				require("codecompanion.prompts.site_chrome").open_footer_validate_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: validate existing footer",
+		},
 	},
 
 	opts = {
@@ -100,7 +135,10 @@ return {
 				agents = {
 					claude_code = {
 						cmd = "claude",
-						args = {},
+						args = {
+							"--add-dir",
+							vim.fn.expand("~/pictures/blocks"),
+						},
 						description = "Claude Code CLI",
 						provider = "terminal",
 					},

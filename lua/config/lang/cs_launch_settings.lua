@@ -73,7 +73,7 @@ local function load_profiles(cwd)
 
 			-- Build the dll path the same way the base config does
 			local program = function()
-				local dlls = vim.fn.glob(cwd .. "/bin/Debug/**/*.dll", true, true)
+				local dlls = vim.fn.glob(cwd .. "/**/bin/Debug/**/*.dll", true, true)
 				dlls = vim.tbl_filter(function(d)
 					return not d:match("testhost")
 						and not d:match("Microsoft%.")

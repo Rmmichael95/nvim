@@ -258,3 +258,15 @@ aucmd("FileType", {
 		vim.opt_local.spell = true
 	end,
 })
+
+-- Automatically make new Perl files executable on save
+aucmd("BufWritePost", {
+	pattern = "*.pl",
+	callback = function()
+		local fname = vim.fn.expand("%:p")
+		-- Only target your specific learning directory paths if desired
+		if string.match(fname, "perl") then
+			vim.fn.system("chmod +x " .. vim.fn.shellescape(fname))
+		end
+	end,
+})
