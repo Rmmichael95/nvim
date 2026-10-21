@@ -25,22 +25,6 @@ return {
 			desc = "Dhali: make pattern",
 		},
 		{
-			"<leader>adt",
-			function()
-				require("codecompanion.prompts.dhali").open_dhali_template_prompt()
-			end,
-			mode = "n",
-			desc = "Dhali: make template",
-		},
-		{
-			"<leader>adr",
-			function()
-				require("codecompanion.prompts.dhali").open_dhali_part_prompt()
-			end,
-			mode = "n",
-			desc = "Dhali: make part",
-		},
-		{
 			"<leader>wmc",
 			function()
 				require("codecompanion.prompts.wordpress").open_wp_mcp_context_sync_prompt()
@@ -49,20 +33,28 @@ return {
 			desc = "WP MCP Context Sync",
 		},
 		{
-			"<leader>ap",
-			function()
-				require("codecompanion.prompts.wordpress").open_ollie_pattern_prompt()
-			end,
-			mode = "n",
-			desc = "Claude: Ollie screenshot to pattern",
-		},
-		{
 			"<leader>ad",
 			function()
 				require("codecompanion.prompts.wordpress").open_wp_database_content_audit_prompt()
 			end,
 			mode = "n",
 			desc = "Claude: WP database content audit",
+		},
+		{
+			"<leader>adh",
+			function()
+				require("codecompanion.prompts.site_chrome").open_header_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: create new header",
+		},
+		{
+			"<leader>adf",
+			function()
+				require("codecompanion.prompts.site_chrome").open_footer_prompt()
+			end,
+			mode = "n",
+			desc = "Dhali: create new footer",
 		},
 		{
 			"<leader>ahr",
@@ -373,31 +365,17 @@ return {
 			return nil
 		end
 
-		local function remember_wp_root_from(start)
-			local root = find_wp_root_from(start)
-
-			if root then
-				vim.g.wp_cli_path = root
-			end
+		-- A WordPress root must belong to the current working directory.
+		-- Do not retain a previous site's path after :cd into another project.
+		-- Buffer navigation cannot silently select a different site than cwd.
+		local function update_wp_root()
+			vim.g.wp_cli_path = find_wp_root_from(vim.fn.getcwd())
 		end
 
-		-- Try immediately from current buffer and cwd.
-		remember_wp_root_from(vim.api.nvim_buf_get_name(0))
-		remember_wp_root_from(vim.fn.getcwd())
-
-		-- Keep updating as you move between project files.
-		vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
+		update_wp_root()
+		vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "DirChanged" }, {
 			group = vim.api.nvim_create_augroup("CodeCompanionWpCliRoot", { clear = true }),
-			callback = function(args)
-				remember_wp_root_from(vim.api.nvim_buf_get_name(args.buf))
-			end,
-		})
-
-		vim.api.nvim_create_autocmd("DirChanged", {
-			group = vim.api.nvim_create_augroup("CodeCompanionWpCliCwd", { clear = true }),
-			callback = function()
-				remember_wp_root_from(vim.fn.getcwd())
-			end,
+			callback = update_wp_root,
 		})
 
 		require("codecompanion").setup(opts)
